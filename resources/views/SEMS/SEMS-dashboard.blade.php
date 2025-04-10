@@ -14,7 +14,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: solid;
         ">
-            Smart Examination
+            TEST
                <p> Management System </p>
         </h3>
         <ul class="breadcrumb justify-content-center" style="list-style: none; padding: 0; margin-top: 20px;">
