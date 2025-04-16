@@ -35,8 +35,9 @@ Route::middleware([
 
 // Route for Academicians Dashboard
 Route::get('SEMS-dashboard', function () {
-    return view('SEMS.SEMS-dashboard');
-})->name('SEMS.dashboard');
+    $user = Auth::user();
+    return view('SEMS.SEMS-dashboard', ['role_id' => $user->role_id]);
+})->middleware(['auth'])->name('SEMS.dashboard');
 
 // Route for Course Coordinator Page
 Route::get('create-question', function () {
