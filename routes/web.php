@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PDFController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -130,5 +131,12 @@ Route::get('add-studyplan', function () {
 Route::get('add-course', function () {
     return view('StudyPlanner.add-course');
 })->name('add.course');
+
+Route::post('/generate-pdf', [PDFController::class, 'generate'])->name('pdf.generate');
+
+
+
+
+
 
 
