@@ -70,4 +70,10 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function ccAssignments()
+    {
+        return $this->hasMany(CCAssignment::class);
+    }
+
 }
