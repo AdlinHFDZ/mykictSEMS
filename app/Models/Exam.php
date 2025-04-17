@@ -11,5 +11,11 @@ class Exam extends Model
         'course_id',
         'section',
         'questions',
+        'tos',
     ];
+
+    protected $casts = [
+        'tos' => 'array',
+    ];
+
 }

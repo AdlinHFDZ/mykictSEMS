@@ -15,6 +15,8 @@ return new class extends Migration
          Schema::table('exams', function (Blueprint $table) {
              $table->json('tos')->nullable();
              $table->string('pdf_path')->nullable();
+             $table->json('tos')->nullable(); // Add this line
+
          });
      }*/
 

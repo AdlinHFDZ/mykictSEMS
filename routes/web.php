@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PDFController;
+use App\Http\Controllers\ExamController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -134,6 +135,7 @@ Route::get('add-course', function () {
 })->name('add.course');
 
 Route::post('/generate-pdf', [PDFController::class, 'generate'])->name('pdf.generate');
+Route::post('/store-exam', [ExamController::class, 'store'])->name('exam.store');
 
 
 

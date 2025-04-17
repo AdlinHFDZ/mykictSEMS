@@ -1,46 +1,14 @@
-
 @extends('layouts.master')
 
 @section('content')
-
-<form action="{{ route('pdf.generate') }}" method="POST" target="_blank" id="examForm">
-    @csrf
-    <!-- tos -->
-    <table class="table">
-    <thead>
-        <tr>
-            <th>Question Number</th>
-            <th>Spec1</th>
-            <th>Spec2</th>
-            <th>Spec3</th>
-            <th>Spec4</th>
-        </tr>
-    </thead>
-    <tbody>
-        @for ($q = 1; $q <= 4; $q++)
-            <tr>
-                <td>Q{{ $q }}</td>
-                @for ($s = 1; $s <= 4; $s++)
-                    <td>
-                        <input type="checkbox" name="tos[Q{{ $q }}][Spec{{ $s }}]" value="1">
-                    </td>
-                @endfor
-            </tr>
-        @endfor
-    </tbody>
-</table>
-    <!-- tos -->
-
-
-
 <div class="content container-fluid">
     <div class="page-header">
         <div class="row">
             <div class="col">
-                <h3 class="page-title">Final Exam</h3>
+                <h3 class="page-title">Create Question</h3>
                 <ul class="breadcrumb justify-content-center" style="list-style: none; padding: 0; margin-top: 20px;">
                     <li class="breadcrumb-item">
-                        <a href="SEMS-dashboard" style="color: #000000; text-decoration: none;">SEMS</a>
+                        <a href="{{ route('SEMS.dashboard') }}" style="color: #000000; text-decoration: none;">SEMS</a>
                     </li>
                     <li class="breadcrumb-item active" style="color: #000000;">Create Question</li>
                 </ul>
@@ -48,148 +16,131 @@
         </div>
     </div>
 
-    <!-- Course Information Section -->
-    <div class="row mb-4">
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-body">
-                    <form action="#" id="courseInfoForm">
+    <!-- Course Information Form -->
+    <form action="{{ route('exam.store') }}" method="POST">
+        @csrf
+
+        <div class="row mb-4">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <!-- Course Name -->
                         <div class="form-group row">
                             <label class="col-form-label col-md-4">Course Name</label>
                             <div class="col-md-8">
-                            <input type="text" name="course_name" class="form-control" placeholder="Enter Course Name">
+                                <input type="text" name="course_name" class="form-control" required>
+                            </div>
+                        </div>
 
-                            </div>
-                        </div>
+                        <!-- Course Code -->
                         <div class="form-group row">
-                            <label class="col-form-label col-md-4">Course ID</label>
+                            <label class="col-form-label col-md-4">Course Code</label>
                             <div class="col-md-8">
-                                <input type="text" name="course_id" placeholder="Enter Course ID">
+                                <input type="text" name="course_code" class="form-control" required>
                             </div>
                         </div>
+
+                        <!-- Section -->
                         <div class="form-group row">
                             <label class="col-form-label col-md-4">Section</label>
                             <div class="col-md-8">
-                                <input type="text" name="section" placeholder="Enter Section Number">
+                                <input type="text" name="section" class="form-control">
                             </div>
                         </div>
-                    </form>
+
+                        <!-- Coordinator Name -->
+                        <div class="form-group row">
+                            <label class="col-form-label col-md-4">Coordinator Name</label>
+                            <div class="col-md-8">
+                                <input type="text" name="coordinator_name" class="form-control">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-6">
-            <div class="card">
+        <!-- TOS Table -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title">Table of Specification (TOS)</h5>
+            </div>
+            <div class="card-body table-responsive">
+                <table class="table table-bordered">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>CO / C</th>
+                            <th>C1</th>
+                            <th>C2</th>
+                            <th>C3</th>
+                            <th>C4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(['CO1', 'CO2', 'CO3'] as $co)
+                            <tr>
+                                <th>{{ $co }}</th>
+                                @for ($c = 1; $c <= 4; $c++)
+                                    <td class="text-center">
+                                        <input type="checkbox" name="tos[{{ $co }}][C{{ $c }}]" value="1">
+                                    </td>
+                                @endfor
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Questions Section -->
+        @for ($i = 1; $i <= 4; $i++)
+            <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="card-title">TOS Table</h5>
+                    <h5 class="card-title">Question {{ $i }}</h5>
                 </div>
                 <div class="card-body">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Question Number</th>
-                                <th>Spec1</th>
-                                <th>Spec2</th>
-                                <th>Spec3</th>
-                                <th>Spec4</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Q1</td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                            </tr>
-                            <tr>
-                                <td>Q2</td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                            </tr>
-                            <tr>
-                                <td>Q3</td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                            </tr>
-                            <tr>
-                                <td>Q4</td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <!-- Question -->
+                    <div class="form-group row">
+                        <label class="col-form-label col-md-2">Question</label>
+                        <div class="col-md-10">
+                            <textarea class="tinymce form-control" name="question{{ $i }}"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Answer -->
+                    <div class="form-group row">
+                        <label class="col-form-label col-md-2">Answer</label>
+                        <div class="col-md-10">
+                            <textarea class="tinymce form-control" name="answer{{ $i }}"></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+        @endfor
 
- <!-- Questions Section -->
-<!-- Questions Section -->
-@for ($i = 1; $i <= 4; $i++)
-    <div class="card mt-4">
-        <div class="card-header">
-            <h5 class="card-title">Question {{ $i }}</h5>
+        <!-- Submit -->
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Send to Department</button>
         </div>
-        <div class="card-body">
-            <!-- Question Input -->
-            <div class="form-group row mb-3">
-                <label for="question{{ $i }}" class="col-form-label col-md-2">Question</label>
-                <div class="col-md-10">
-                    <textarea id="question{{ $i }}" name="question{{ $i }}" class="tinymce form-control" placeholder="Enter question text..."></textarea>
-                </div>
-            </div>
-
-            <!-- Answer Input -->
-            <div class="form-group row">
-                <label for="answer{{ $i }}" class="col-form-label col-md-2">Answer</label>
-                <div class="col-md-10">
-                    <textarea id="answer{{ $i }}" name="answer{{ $i }}" class="tinymce form-control" placeholder="Enter answer..."></textarea>
-                </div>
-            </div>
-        </div>
-    </div>
-@endfor
-
-
- <!-- Submit Buttons -->
- <div class="form-group mb-0 row">
-     <div class="col-md-10 offset-md-2">
-         <button type="button" class="btn btn-secondary">Save Draft</button>
-     </div>
- </div>
-    <!-- Submit Button -->
-    <div class="form-group mt-4 row">
-        <div class="col-md-10 offset-md-2">
-            <button type="submit" class="btn btn-success">Send to Department</button>
-        </div>
-    </div>
+    </form>
 </div>
-
-<script>
-    function handleCompleteQuestion() {
-        alert('Success! The questions have been reviewed and sent back to the department.');
-    }
-</script>
-</div>
-
-</form>
-
-<!-- Include TinyMCE -->
-<script src="{{ asset('assets/js/tinymce/js/tinymce/tinymce.min.js') }}"></script>
-<script>
- tinymce.init({
-     selector: 'textarea.tinymce',
-     plugins: 'lists link image table code',
-     toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code',
-     height: 300
- });
-</script>
-
 @endsection
+
+@push('scripts')
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+    tinymce.init({
+        selector: 'textarea.tinymce',
+        height: 200,
+        menubar: false,
+        plugins: [
+            'advlist autolink lists link image charmap print preview anchor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table paste code help wordcount'
+        ],
+        toolbar: 'undo redo | formatselect | bold italic backcolor | \
+                  alignleft aligncenter alignright alignjustify | \
+                  bullist numlist outdent indent | removeformat | help'
+    });
+</script>
+@endpush
