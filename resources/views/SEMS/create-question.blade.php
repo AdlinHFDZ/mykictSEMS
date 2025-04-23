@@ -17,8 +17,9 @@
     </div>
 
     <!-- Course Information Form -->
-    <form action="{{ route('exam.store') }}" method="POST">
+    <form action="{{ route('exam.submit-question') }}" method="POST">
         @csrf
+        <input type="hidden" name="exam_id" value="{{ request('exam_id') }}">
 
         <div class="row mb-4">
             <div class="col-lg-6">
@@ -28,7 +29,7 @@
                         <div class="form-group row">
                             <label class="col-form-label col-md-4">Course Name</label>
                             <div class="col-md-8">
-                                <input type="text" name="course_name" class="form-control" required>
+                                <input type="text" name="course_name" class="form-control" value="{{ $exam->course_name ?? '' }}" disabled>
                             </div>
                         </div>
 
@@ -36,7 +37,7 @@
                         <div class="form-group row">
                             <label class="col-form-label col-md-4">Course Code</label>
                             <div class="col-md-8">
-                                <input type="text" name="course_code" class="form-control" required>
+                                <input type="text" name="course_code" class="form-control" value="{{ $exam->course_code ?? '' }}" disabled>
                             </div>
                         </div>
 
@@ -44,7 +45,7 @@
                         <div class="form-group row">
                             <label class="col-form-label col-md-4">Section</label>
                             <div class="col-md-8">
-                                <input type="text" name="section" class="form-control">
+                                <input type="text" name="section" class="form-control" value="{{ $exam->section ?? '' }}" disabled>
                             </div>
                         </div>
 
@@ -52,7 +53,7 @@
                         <div class="form-group row">
                             <label class="col-form-label col-md-4">Coordinator Name</label>
                             <div class="col-md-8">
-                                <input type="text" name="coordinator_name" class="form-control">
+                                <input type="text" name="coordinator_name" class="form-control" value="{{ Auth::user()->name }}" disabled>
                             </div>
                         </div>
                     </div>

@@ -41,17 +41,20 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/store-exam', [ExamController::class, 'store'])->name('exam.store');
 
-    // Assign CC
-    Route::get('/assign-cc', [ExamController::class, 'showAssignCoordinatorForm'])->name('assign.cc.form');
-    Route::post('/assign-cc', [ExamController::class, 'assignCoordinator'])->name('assign.cc');
+    // Assign CC or Vetter
+    Route::get('/assign-role', [ExamController::class, 'showAssignRoleForm'])->name('assign.role.form');
+    Route::post('/assign-role', [ExamController::class, 'assignRole'])->name('assign.role');
+    Route::post('/assign-vetter', [ExamController::class, 'assignVetter'])->name('assign.vetter');
 
     // HOD Dashboard
     Route::get('/HOD-dashboard', [ExamController::class, 'hodDashboard'])->name('HOD.dashboard');
 
     // CC Dashboard
-    Route::get('/CC-dashboard', function () {
-        return view('SEMS.CC-dashboard');
-    })->name('CC.dashboard');
+    Route::get('/CC-dashboard', [ExamController::class, 'ccDashboard'])->name('CC.dashboard');
+
+    Route::post('/submit-question', [ExamController::class, 'submitQuestion'])->name('exam.submit-question');
+
+
 
     // Vetter Dashboard
     Route::get('/vetters-dashboard', function () {
@@ -59,9 +62,8 @@ Route::middleware(['auth'])->group(function () {
     })->name('vetters.dashboard');
 
     // Other SEMS pages (optional)
-    Route::get('/create-question', function () {
-        return view('SEMS.create-question');
-    })->name('create.question');
+    Route::get('/create-question', [ExamController::class, 'showCreateQuestionForm'])->name('create.question');
+
 
     Route::get('/approval-question', function () {
         return view('SEMS.approval-question');
@@ -78,11 +80,41 @@ Route::middleware(['auth'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| PDF
+| PDF Generation
 |--------------------------------------------------------------------------
 */
 
 Route::post('/generate-pdf', [PDFController::class, 'generate'])->name('pdf.generate');
+
+/*
+|--------------------------------------------------------------------------
+| Default Authenticated Dashboards (Jetstream / Breeze)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+])->group(function () {
+
+    Route::get('/dashboard', function () {
+        return view('admin/welcome-dashboard');
+    })->name('dashboard');
+
+    Route::get('/admin-dashboard', function () {
+        return view('admin/admin-dashboard');
+    })->name('admin.dashboard');
+
+    Route::get('/teacher-dashboard', function () {
+        return view('admin/teacher-dashboard');
+    })->name('teacher.dashboard');
+
+    Route::get('/student-dashboard', function () {
+        return view('admin/student-dashboard');
+    })->name('student.dashboard');
+});
+
 
 /*
 |--------------------------------------------------------------------------
@@ -139,31 +171,4 @@ Route::middleware(['auth'])->group(function () {
     })->name('mainSSP.welcome');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Default Authenticated Dashboards (Jetstream / Breeze)
-|--------------------------------------------------------------------------
-*/
 
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified',
-])->group(function () {
-
-    Route::get('/dashboard', function () {
-        return view('admin/welcome-dashboard');
-    })->name('dashboard');
-
-    Route::get('/admin-dashboard', function () {
-        return view('admin/admin-dashboard');
-    })->name('admin.dashboard');
-
-    Route::get('/teacher-dashboard', function () {
-        return view('admin/teacher-dashboard');
-    })->name('teacher.dashboard');
-
-    Route::get('/student-dashboard', function () {
-        return view('admin/student-dashboard');
-    })->name('student.dashboard');
-});

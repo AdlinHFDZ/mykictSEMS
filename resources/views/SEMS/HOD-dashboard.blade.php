@@ -9,6 +9,20 @@
 </style>
 
 <div class="content container-fluid">
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
     <div class="page-header">
         <div class="row align-items-center">
             <div class="col text-center">
@@ -23,33 +37,50 @@
         </div>
     </div>
 
-    <!-- Exam List Card -->
+    <!-- Filter by status -->
+    <form method="GET" action="{{ route('HOD.dashboard') }}" class="mb-3">
+        <div class="row justify-content-end align-items-center">
+            <div class="col-auto">
+                <label for="statusFilter" class="form-label">Filter by Status:</label>
+            </div>
+            <div class="col-auto">
+                <select name="status" id="statusFilter" class="form-select" onchange="this.form.submit()">
+                    <option value="">All</option>
+                    <option value="assign Coordinator" {{ request('status') == 'assign Coordinator' ? 'selected' : '' }}>Assign Coordinator</option>
+                    <option value="draft question" {{ request('status') == 'draft question' ? 'selected' : '' }}>Draft Question</option>
+                    <option value="vetted" {{ request('status') == 'vetted' ? 'selected' : '' }}>Vetted</option>
+                    <option value="pending approval" {{ request('status') == 'pending approval' ? 'selected' : '' }}>Pending Approval</option>
+                    <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                </select>
+            </div>
+        </div>
+    </form>
+
+    <!-- Table -->
     <div class="row">
         <div class="col-sm-12">
             <div class="card card-table">
                 <div class="card-body">
-
-                    <!-- Page Header Actions -->
                     <div class="page-header">
                         <div class="row align-items-center">
                             <div class="col">
                                 <h3 class="page-title">Exam Slots</h3>
                             </div>
                             <div class="col-auto text-end ms-auto">
-                                <a href="#" class="btn btn-outline-primary me-2" title="Download all exams">
+                                <a href="#" class="btn btn-outline-primary me-2">
                                     <i class="fas fa-download"></i> Download
                                 </a>
-                                <a href="{{ route('exam.create') }}" class="btn btn-success me-2" title="Create a new exam slot">
+                                <a href="{{ route('exam.create') }}" class="btn btn-success me-2">
                                     <i class="fas fa-plus"></i> Create Exam
                                 </a>
-                                <a href="{{ route('assign.cc.form') }}" class="btn btn-primary" title="Manual CC assignment (bulk)">
+                                <a href="{{ route('assign.role.form') }}" class="btn btn-primary">
                                     <i class="fas fa-user-plus"></i> Assign CC
                                 </a>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Dynamic Exam Table -->
+                    <!-- Dynamic Table -->
                     <div class="table-responsive">
                         <table class="table border-0 table-hover table-center mb-0 datatable table-striped">
                             <thead class="student-thread">
@@ -73,28 +104,65 @@
                                         <span class="badge bg-{{
                                             $exam->status === 'assign Coordinator' ? 'warning' :
                                             ($exam->status === 'draft question' ? 'primary' :
-                                            ($exam->status === 'approved' ? 'success' : 'secondary')) }}">
+                                            ($exam->status === 'vetted' ? 'info' :
+                                            ($exam->status === 'pending approval' ? 'secondary' :
+                                            ($exam->status === 'approved' ? 'success' : 'dark')))) }}">
                                             {{ ucfirst($exam->status) }}
                                         </span>
                                     </td>
                                     <td>
-                                        <form method="POST" action="{{ route('assign.cc') }}" class="d-flex align-items-center justify-content-center">
-                                            @csrf
-                                            <input type="hidden" name="exam_id" value="{{ $exam->id }}">
-
-                                            @if ($exam->status === 'assign Coordinator')
+                                        @if ($exam->status === 'assign Coordinator')
+                                            <!-- Assign CC Inline -->
+                                            <form method="POST" action="{{ route('assign.role') }}" class="d-flex align-items-center justify-content-center mb-2">
+                                                @csrf
+                                                <input type="hidden" name="exam_id" value="{{ $exam->id }}">
+                                                <input type="hidden" name="role_type" value="cc">
                                                 <select name="user_id" class="form-select form-select-sm me-2" required>
                                                     <option value="">Select CC</option>
                                                     @foreach ($academicians as $user)
                                                         <option value="{{ $user->id }}">{{ $user->name }}</option>
                                                     @endforeach
                                                 </select>
-
                                                 <button type="submit" class="btn btn-sm btn-primary">Assign</button>
-                                            @else
-                                                <span class="text-muted">CC Assigned</span>
-                                            @endif
-                                        </form>
+                                            </form>
+
+                                        @elseif ($exam->status === 'draft question complete' && !empty($exam->questions))
+                                            <!-- Assign Vetter Button -->
+                                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#assignVetterModal{{ $exam->id }}">
+                                                Assign Vetter
+                                            </button>
+
+                                            <!-- Vetter Modal -->
+                                            <div class="modal fade" id="assignVetterModal{{ $exam->id }}" tabindex="-1" aria-labelledby="assignVetterModalLabel{{ $exam->id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <form method="POST" action="{{ route('assign.vetter') }}">
+                                                            @csrf
+                                                            <input type="hidden" name="exam_id" value="{{ $exam->id }}">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="assignVetterModalLabel{{ $exam->id }}">Assign Vetter for {{ $exam->course_code }}</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <select name="user_id" class="form-select" required>
+                                                                    <option value="">Select Vetter</option>
+                                                                    @foreach ($academicians as $user)
+                                                                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-warning">Assign</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <span class="text-muted">Assigned</span>
+                                        @endif
+                                    </td>
                                     </td>
                                 </tr>
                                 @empty
@@ -105,7 +173,6 @@
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
         </div>

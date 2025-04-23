@@ -2,13 +2,13 @@
 
 @section('content')
 <div class="container">
-    <h3 class="mb-4">Assign Course Coordinator</h3>
+    <h3 class="mb-4">Assign Course Coordinator / Vetter</h3>
 
     @if (session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <form action="{{ route('assign.cc') }}" method="POST">
+    <form action="{{ route('assign.role') }}" method="POST">
         @csrf
 
         <div class="form-group mb-3">
@@ -24,7 +24,7 @@
         </div>
 
         <div class="form-group mb-3">
-            <label for="user_id">Select Coordinator</label>
+            <label for="user_id">Select Academician</label>
             <select name="user_id" class="form-control" required>
                 <option value="">-- Choose a lecturer --</option>
                 @foreach ($academicians as $user)
@@ -33,7 +33,16 @@
             </select>
         </div>
 
-        <button type="submit" class="btn btn-primary">Assign Coordinator</button>
+        <div class="form-group mb-3">
+            <label for="role_type">Assign As:</label>
+            <select name="role_type" class="form-control" required>
+                <option value="">-- Choose a role --</option>
+                <option value="cc">Course Coordinator</option>
+                <option value="vetter">Vetter</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Assign</button>
     </form>
 </div>
 @endsection

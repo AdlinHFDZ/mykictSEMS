@@ -21,7 +21,9 @@ class Exam extends Model
 
     protected $casts = [
         'tos' => 'array',
+        'questions' => 'array',
     ];
+
 
     public function ccAssignment()
     {
