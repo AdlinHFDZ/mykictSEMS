@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\PDFController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\SemesterController;
+use App\Models\Semester;
 use App\Models\Exam;
 
 /*
@@ -11,71 +14,97 @@ use App\Models\Exam;
 | Public Routes
 |--------------------------------------------------------------------------
 */
-
 Route::get('/', function () {
     return view('auth.login');
 });
 
 /*
 |--------------------------------------------------------------------------
-| SEMS Routes (Smart Exam Management System)
+| SEMS (Smart Examination Management System) Routes
 |--------------------------------------------------------------------------
 */
-
 Route::middleware(['auth'])->group(function () {
 
-    // Super Admin dashboard with role-based switcher
+    /*
+    |--------------------------------------------------------------------------
+    | SEMS Dashboard
+    |--------------------------------------------------------------------------
+    */
     Route::get('/SEMS-dashboard', function () {
         $user = Auth::user();
-        $exams = Exam::all(); // show all exams for Super Admin
+        $activeSemesterId = Semester::where('is_active', true)->value('id');
+        $exams = Exam::where('semester_id', $activeSemesterId)->get();
+        $semesters = Semester::all();
+        $activeSemester = Semester::where('is_active', true)->first();
+
         return view('SEMS.SEMS-dashboard', [
             'role_id' => $user->role_id,
-            'exams' => $exams
+            'exams' => $exams,
+            'semesters' => $semesters,
+            'activeSemester' => $activeSemester
         ]);
     })->name('SEMS.dashboard');
 
-    // Create Exam Slot
-    Route::get('/create-exam', function () {
-        return view('SEMS.create-exam');
-    })->name('exam.create');
+    /*
+    |--------------------------------------------------------------------------
+    | Exam Management
+    |--------------------------------------------------------------------------
+    */
+    Route::controller(ExamController::class)->group(function () {
 
-    Route::post('/store-exam', [ExamController::class, 'store'])->name('exam.store');
+        // Create Exam Slot
+        Route::get('/create-exam', 'showCreateExamForm')->name('exam.create');
+        Route::post('/store-exam', 'store')->name('exam.store');
 
-    // Assign CC or Vetter
-    Route::get('/assign-role', [ExamController::class, 'showAssignRoleForm'])->name('assign.role.form');
-    Route::post('/assign-role', [ExamController::class, 'assignRole'])->name('assign.role');
-    Route::post('/assign-vetter', [ExamController::class, 'assignVetter'])->name('assign.vetter');
+        // Create Question
+        Route::get('/create-question', 'showCreateQuestionForm')->name('create.question');
+        Route::post('/submit-question', 'submitQuestion')->name('exam.submit-question');
 
-    // HOD Dashboard
-    Route::get('/HOD-dashboard', [ExamController::class, 'hodDashboard'])->name('HOD.dashboard');
+        // Assign Roles
+        Route::get('/assign-role', 'showAssignRoleForm')->name('assign.role.form');
+        Route::post('/assign-role', 'assignRole')->name('assign.role');
+        Route::post('/assign-vetter', 'assignVetter')->name('assign.vetter');
 
-    // CC Dashboard
-    Route::get('/CC-dashboard', [ExamController::class, 'ccDashboard'])->name('CC.dashboard');
+        // Dashboards
+        Route::get('/HOD-dashboard', 'hodDashboard')->name('HOD.dashboard');
+        Route::get('/CC-dashboard', 'ccDashboard')->name('CC.dashboard');
+        Route::get('/vetters-dashboard', 'vetterDashboard')->name('vetters.dashboard');
 
-    Route::post('/submit-question', [ExamController::class, 'submitQuestion'])->name('exam.submit-question');
+        // Vetter Review Section
+        Route::prefix('vetter')->group(function () {
+            Route::get('/question-review', 'vetterReviewPage')->name('question.review');
+            Route::post('/question-review', 'submitVetterReview')->name('question.review.submit');
+        });
+
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Course Management
+    |--------------------------------------------------------------------------
+    */
+    Route::controller(CourseController::class)->prefix('courses')->group(function () {
+        Route::get('/', 'index')->name('courses.index');
+        Route::get('/create', 'create')->name('courses.create');
+        Route::post('/', 'store')->name('courses.store');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Semester Management
+    |--------------------------------------------------------------------------
+    */
+    Route::controller(SemesterController::class)->prefix('semesters')->group(function () {
+        Route::get('/', 'index')->name('semesters.index');
+        Route::post('/', 'store')->name('semesters.store');
+        Route::patch('/{semester}/activate', 'activate')->name('semesters.activate');
+    });
 
 
+    Route::get('/approval-question', [App\Http\Controllers\ExamController::class, 'showApprovalQuestion'])->name('approval.question');
+    Route::post('/exam/approve', [ExamController::class, 'approveExam'])->name('exam.approve');
+    Route::post('/exam-deny', [ExamController::class, 'denyQuestion'])->name('exam.deny');
 
-    // Vetter Dashboard
-    Route::get('/vetters-dashboard', function () {
-        return view('SEMS.vetters-page');
-    })->name('vetters.dashboard');
-
-    // Other SEMS pages (optional)
-    Route::get('/create-question', [ExamController::class, 'showCreateQuestionForm'])->name('create.question');
-
-
-    Route::get('/approval-question', function () {
-        return view('SEMS.approval-question');
-    })->name('approval.question');
-
-    Route::get('/question-review', function () {
-        return view('SEMS.question-review');
-    })->name('question.review');
-
-    Route::get('/edit-question', function () {
-        return view('SEMS.edit-question');
-    })->name('edit.question');
 });
 
 /*
@@ -83,7 +112,6 @@ Route::middleware(['auth'])->group(function () {
 | PDF Generation
 |--------------------------------------------------------------------------
 */
-
 Route::post('/generate-pdf', [PDFController::class, 'generate'])->name('pdf.generate');
 
 /*
@@ -91,30 +119,17 @@ Route::post('/generate-pdf', [PDFController::class, 'generate'])->name('pdf.gene
 | Default Authenticated Dashboards (Jetstream / Breeze)
 |--------------------------------------------------------------------------
 */
-
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
 
-    Route::get('/dashboard', function () {
-        return view('admin/welcome-dashboard');
-    })->name('dashboard');
-
-    Route::get('/admin-dashboard', function () {
-        return view('admin/admin-dashboard');
-    })->name('admin.dashboard');
-
-    Route::get('/teacher-dashboard', function () {
-        return view('admin/teacher-dashboard');
-    })->name('teacher.dashboard');
-
-    Route::get('/student-dashboard', function () {
-        return view('admin/student-dashboard');
-    })->name('student.dashboard');
+    Route::view('/dashboard', 'admin/welcome-dashboard')->name('dashboard');
+    Route::view('/admin-dashboard', 'admin/admin-dashboard')->name('admin.dashboard');
+    Route::view('/teacher-dashboard', 'admin/teacher-dashboard')->name('teacher.dashboard');
+    Route::view('/student-dashboard', 'admin/student-dashboard')->name('student.dashboard');
 });
-
 
 /*
 |--------------------------------------------------------------------------

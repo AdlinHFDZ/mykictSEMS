@@ -1,205 +1,91 @@
 @extends('layouts.master')
 
 @section('content')
+<div class="container mt-5">
+    <h2 class="mb-4">Review Exam: {{ $exam->course_name }} ({{ $exam->course_code }})</h2>
 
-<div class="content container-fluid">
-    <div class="page-header">
-        <div class="row">
-            <div class="col">
-                <h3 class="page-title">Question Review</h3>
-                <ul class="breadcrumb justify-content-center" style="list-style: none; padding: 0; margin-top: 20px;">
-                    <li class="breadcrumb-item">
-                        <a href="SEMS-dashboard" style="color: #000000; text-decoration: none;">SEMS</a>
-                    </li>
-                    <li class="breadcrumb-item active" style="color: #000000;">Review Questions</li>
-                </ul>
-            </div>
-        </div>
-    </div>
- <!-- Course Information and TOS Table Section -->
-<div class="row mb-4">
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-body">
-                <form action="#" id="courseInfoForm">
-                    <div class="form-group row">
-                        <label class="col-form-label col-md-4">Course Name</label>
-                        <div class="col-md-8">
-                            <input type="text" class="form-control" value="Random Question" readonly>
-                        </div>
-                    </div>
-                    <div class="form-group row">
-                        <label class="col-form-label col-md-4">Course ID</label>
-                        <div class="col-md-8">
-                            <input type="text" class="form-control" value="QSTN-143" readonly>
-                        </div>
-                    </div>
-                    <div class="form-group row">
-                        <label class="col-form-label col-md-4">Section No.</label>
-                        <div class="col-md-8">
-                            <input type="text" class="form-control" value="All" readonly>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
+    <div class="mb-4">
+        <strong>Section:</strong> {{ $exam->section }} <br>
+        <strong>Status:</strong>
+        <span class="badge bg-{{ $exam->status == 'vetting' ? 'warning' : 'success' }}">
+            {{ ucfirst($exam->status) }}
+        </span>
     </div>
 
-    <div class="col-lg-6">
-        <div class="card">
+    <form method="POST" action="{{ route('question.review.submit') }}">
+        @csrf
+        <input type="hidden" name="exam_id" value="{{ $exam->id }}">
+
+        @php
+            $questions = json_decode($exam->questions, true) ?? [];
+            $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
+        @endphp
+
+        <!-- TOS Table -->
+        <div class="card mb-4">
             <div class="card-header">
-                <h5 class="card-title">TOS Table</h5>
+                <h5 class="card-title">Table of Specification (TOS)</h5>
             </div>
-            <div class="card-body">
-                <table class="table">
-                    <thead>
+            <div class="card-body table-responsive">
+                <table class="table table-bordered text-center align-middle">
+                    <thead class="table-light">
                         <tr>
-                            <th>Question Number</th>
-                            <th>Spec1</th>
-                            <th>Spec2</th>
-                            <th>Spec3</th>
-                            <th>Spec4</th>
+                            <th>#</th>
+                            <th>TOS Specification</th>
+                            <th>CC</th>
+                            <th>Vetter</th>
+                            <th>HOD</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Q1</td>
-                            <td><input type="checkbox" checked readonly></td>
-                            <td><input type="checkbox" checked readonly></td>
-                            <td><input type="checkbox" readonly></td>
-                            <td><input type="checkbox" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>Q2</td>
-                            <td><input type="checkbox" readonly></td>
-                            <td><input type="checkbox" checked readonly></td>
-                            <td><input type="checkbox" checked readonly></td>
-                            <td><input type="checkbox" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>Q3</td>
-                            <td><input type="checkbox" readonly></td>
-                            <td><input type="checkbox" readonly></td>
-                            <td><input type="checkbox" checked readonly></td>
-                            <td><input type="checkbox" checked readonly></td>
-                        </tr>
-                        <tr>
-                            <td>Q4</td>
-                            <td><input type="checkbox" checked readonly></td>
-                            <td><input type="checkbox" readonly></td>
-                            <td><input type="checkbox" checked readonly></td>
-                            <td><input type="checkbox" readonly></td>
-                        </tr>
+                        @forelse ($tos as $index => $row)
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>
+                                    <input type="text" class="form-control" value="{{ $row['spec'] ?? '' }}" readonly>
+                                </td>
+                                <td>
+                                    <input type="checkbox" disabled {{ !empty($row['cc']) ? 'checked' : '' }}>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="tos[{{ $index }}][vetter]" value="1" {{ !empty($row['vetter']) ? 'checked' : '' }}>
+                                </td>
+                                <td>
+                                    <input type="checkbox" disabled {{ !empty($row['hod']) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-muted">No TOS items found.</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
+
+        <!-- Questions -->
+        @foreach ($questions as $index => $q)
+            <div class="card mb-4">
+                <div class="card-header">
+                    <strong>Question {{ $index + 1 }}</strong>
+                </div>
+                <div class="card-body">
+                    <p><strong>Question:</strong> {!! $q['question'] ?? 'N/A' !!}</p>
+                    <p><strong>Answer:</strong> {!! $q['answer'] ?? 'N/A' !!}</p>
+
+                    <div class="form-group mt-3">
+                        <label for="comment{{ $index }}">Your Comment:</label>
+                        <textarea name="comments[{{ $index }}]" id="comment{{ $index }}" rows="3" class="form-control" placeholder="Suggest edits, corrections..."></textarea>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success">Submit Review ✅</button>
+            <a href="{{ route('vetters.dashboard') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
 </div>
-
-    @foreach ([
-        ['id' => 1, 'question' => 'What is the capital of France?', 'answer' => 'The capital of France is Paris.'],
-        ['id' => 2, 'question' => 'What is 2 + 2?', 'answer' => '2 + 2 equals 4.'],
-        ['id' => 3, 'question' => 'Who wrote "Hamlet"?', 'answer' => 'William Shakespeare wrote "Hamlet".'],
-        ['id' => 4, 'question' => 'What is the chemical symbol for water?', 'answer' => 'The chemical symbol for water is H2O.'],
-    ] as $data)
-    <div class="row">
-        <!-- Question Section -->
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">Question {{ $data['id'] }}</h5>
-                </div>
-                <div class="card-body">
-                    <form action="#" id="questionForm{{ $data['id'] }}">
-                        <div class="form-group">
-                            <label>Question</label>
-                            <textarea class="form-control" rows="3" readonly>{{ $data['question'] }}</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Answer</label>
-                            <textarea class="form-control" rows="3" readonly>{{ $data['answer'] }}</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Comments</label>
-                            <textarea class="form-control" rows="3" placeholder="Add comments"></textarea>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Specs and TOS Table Section -->
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title">Specifications</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Spec #</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for ($i = 1; $i <= 10; $i++)
-                            <tr>
-                                <td>Spec {{ $i }}</td>
-                                <td>
-                                    <input type="checkbox">
-                                </td>
-                            </tr>
-                            @endfor
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h5 class="card-title">TOS Table</h5>
-                </div>
-                <div class="card-body">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Question</th>
-                                <th>Spec1</th>
-                                <th>Spec2</th>
-                                <th>Spec3</th>
-                                <th>Spec4</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Q{{ $data['id'] }}</td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                                <td><input type="checkbox"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endforeach
-
-    <!-- Submit Button -->
-    <div class="form-group mb-0 row">
-        <div class="col-md-10 offset-md-2">
-            <button type="button" class="btn btn-success me-2" onclick="handleCompleteVetting()">Complete Vetting</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    function handleCompleteVetting() {
-        alert('Success! The questions have been reviewed and sent back to the department.');
-    }
-</script>
-
 @endsection

@@ -16,44 +16,42 @@
         </div>
     </div>
 
-    <!-- Course Information Form -->
+    @php
+        $questions = json_decode($exam->questions, true) ?? [];
+        $vetterComments = is_array($exam->vetter_comments) ? $exam->vetter_comments : json_decode($exam->vetter_comments, true) ?? [];
+        $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
+    @endphp
+
     <form action="{{ route('exam.submit-question') }}" method="POST">
         @csrf
-        <input type="hidden" name="exam_id" value="{{ request('exam_id') }}">
+        <input type="hidden" name="exam_id" value="{{ $exam->id }}">
 
         <div class="row mb-4">
             <div class="col-lg-6">
                 <div class="card">
                     <div class="card-body">
-                        <!-- Course Name -->
                         <div class="form-group row">
                             <label class="col-form-label col-md-4">Course Name</label>
                             <div class="col-md-8">
-                                <input type="text" name="course_name" class="form-control" value="{{ $exam->course_name ?? '' }}" disabled>
+                                <input type="text" class="form-control" value="{{ $exam->course_name }}" disabled>
                             </div>
                         </div>
-
-                        <!-- Course Code -->
                         <div class="form-group row">
                             <label class="col-form-label col-md-4">Course Code</label>
                             <div class="col-md-8">
-                                <input type="text" name="course_code" class="form-control" value="{{ $exam->course_code ?? '' }}" disabled>
+                                <input type="text" class="form-control" value="{{ $exam->course_code }}" disabled>
                             </div>
                         </div>
-
-                        <!-- Section -->
                         <div class="form-group row">
                             <label class="col-form-label col-md-4">Section</label>
                             <div class="col-md-8">
-                                <input type="text" name="section" class="form-control" value="{{ $exam->section ?? '' }}" disabled>
+                                <input type="text" class="form-control" value="{{ $exam->section }}" disabled>
                             </div>
                         </div>
-
-                        <!-- Coordinator Name -->
                         <div class="form-group row">
-                            <label class="col-form-label col-md-4">Coordinator Name</label>
+                            <label class="col-form-label col-md-4">Coordinator</label>
                             <div class="col-md-8">
-                                <input type="text" name="coordinator_name" class="form-control" value="{{ Auth::user()->name }}" disabled>
+                                <input type="text" class="form-control" value="{{ Auth::user()->name }}" disabled>
                             </div>
                         </div>
                     </div>
@@ -61,65 +59,77 @@
             </div>
         </div>
 
-        <!-- TOS Table -->
+        <!-- ✅ TOS TABLE Section -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="card-title">Table of Specification (TOS)</h5>
             </div>
             <div class="card-body table-responsive">
-                <table class="table table-bordered">
-                    <thead class="thead-light">
+                <table class="table table-bordered text-center align-middle">
+                    <thead class="table-light">
                         <tr>
-                            <th>CO / C</th>
-                            <th>C1</th>
-                            <th>C2</th>
-                            <th>C3</th>
-                            <th>C4</th>
+                            <th style="width: 5%;">#</th>
+                            <th>TOS Specification</th>
+                            <th>CC</th>
+                            <th>Vetter</th>
+                            <th>HOD</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach(['CO1', 'CO2', 'CO3'] as $co)
+                        @forelse ($tos as $index => $row)
                             <tr>
-                                <th>{{ $co }}</th>
-                                @for ($c = 1; $c <= 4; $c++)
-                                    <td class="text-center">
-                                        <input type="checkbox" name="tos[{{ $co }}][C{{ $c }}]" value="1">
-                                    </td>
-                                @endfor
+                                <td>{{ $index + 1 }}</td>
+                                <td>
+                                    <input type="text" class="form-control" value="{{ $row['spec'] ?? '' }}" readonly>
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="tos[{{ $index }}][cc]" value="1" {{ !empty($row['cc']) ? 'checked' : '' }}>
+                                </td>
+                                <td>
+                                    <input type="checkbox" disabled {{ !empty($row['vetter']) ? 'checked' : '' }}>
+                                </td>
+                                <td>
+                                    <input type="checkbox" disabled {{ !empty($row['hod']) ? 'checked' : '' }}>
+                                </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-muted">No TOS items found.</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
 
         <!-- Questions Section -->
-        @for ($i = 1; $i <= 4; $i++)
+        @for ($i = 0; $i < 4; $i++)
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="card-title">Question {{ $i }}</h5>
+                    <h5 class="card-title">Question {{ $i + 1 }}</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Question -->
                     <div class="form-group row">
                         <label class="col-form-label col-md-2">Question</label>
                         <div class="col-md-10">
-                            <textarea class="tinymce form-control" name="question{{ $i }}"></textarea>
+                            <textarea class="tinymce form-control" name="question{{ $i + 1 }}">{{ $questions[$i]['question'] ?? '' }}</textarea>
                         </div>
                     </div>
-
-                    <!-- Answer -->
                     <div class="form-group row">
                         <label class="col-form-label col-md-2">Answer</label>
                         <div class="col-md-10">
-                            <textarea class="tinymce form-control" name="answer{{ $i }}"></textarea>
+                            <textarea class="tinymce form-control" name="answer{{ $i + 1 }}">{{ $questions[$i]['answer'] ?? '' }}</textarea>
                         </div>
                     </div>
+                    @if (isset($vetterComments[$i]))
+                        <div class="alert alert-warning mt-3">
+                            <strong>Vetter Comment:</strong> {{ $vetterComments[$i] }}
+                        </div>
+                    @endif
                 </div>
             </div>
         @endfor
 
-        <!-- Submit -->
         <div class="text-center">
             <button type="submit" class="btn btn-primary">Send to Department</button>
         </div>
@@ -139,9 +149,7 @@
             'searchreplace visualblocks code fullscreen',
             'insertdatetime media table paste code help wordcount'
         ],
-        toolbar: 'undo redo | formatselect | bold italic backcolor | \
-                  alignleft aligncenter alignright alignjustify | \
-                  bullist numlist outdent indent | removeformat | help'
+        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help'
     });
 </script>
 @endpush

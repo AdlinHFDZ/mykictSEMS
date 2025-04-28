@@ -3,22 +3,18 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MYKICT</title>
-    <link rel="shortcut icon" href="assets/img/logokict.png">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,700;0,900;1,400;1,500;1,700&display=swap"rel="stylesheet">
-    <link rel="stylesheet" href="assets/plugins/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/plugins/feather/feather.css">
-    <link rel="stylesheet" href="assets/plugins/icons/flags/flags.css">
-    <link rel="stylesheet" href="assets/plugins/fontawesome/css/fontawesome.min.css">
-    <link rel="stylesheet" href="assets/plugins/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-   <!--<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">-->
-    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
 
-    {{-- <link rel="stylesheet" href="assets/plugins/simple-calendar/simple-calendar.css"> --}}
-
-</head>
+    <link rel="shortcut icon" href="{{ asset('assets/img/logokict.png') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/plugins/bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/plugins/feather/feather.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/plugins/icons/flags/flags.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/plugins/fontawesome/css/fontawesome.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/plugins/fontawesome/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+  </head>
 
 <body>
 
@@ -27,11 +23,11 @@
         <div class="header">
 
             <div class="header-left">
-                <a href="dashboard" class="logo">
-                    <img src="assets/img/LOGO-KICT.png" alt="Logo">
+                <a href="{{ route('dashboard') }}" class="logo">
+                    <img src="{{ asset('assets/img/LOGO-KICT.png') }}" alt="Logo">
                 </a>
-                <a href="dashboard" class="logo logo-small">
-                    <img src="assets/img/LOGO-KICT.png" alt="Logo" width="30" height="30">
+                <a href="{{ route('dashboard') }}" class="logo logo-small">
+                    <img src="{{ asset('assets/img/LOGO-KICT.png') }}" alt="Logo" width="30" height="30">
                 </a>
             </div>
 
@@ -514,17 +510,20 @@
         </div>
     </div>
 
-    <script src="assets/js/jquery-3.6.0.min.js"></script>
-    <script src="assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/feather.min.js"></script>
-    <script src="assets/plugins/slimscroll/jquery.slimscroll.min.js"></script>
-    <script src="assets/plugins/apexchart/apexcharts.min.js"></script>
-    <script src="assets/plugins/apexchart/chart-data.js"></script>
-    <script src="assets/js/script.js"></script>
+    <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('assets/js/feather.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/slimscroll/jquery.slimscroll.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/apexchart/apexcharts.min.js') }}"></script>
+    <script src="{{ asset('assets/plugins/apexchart/chart-data.js') }}"></script>
+    <script src="{{ asset('assets/js/script.js') }}"></script>
+    @stack('scripts')
+
 
     {{-- <script src="assets/plugins/simple-calendar/jquery.simple-calendar.js"></script>
     <script src="assets/js/calander.js"></script>
     <script src="assets/js/circle-progress.min.js"></script> --}}
+
 </body>
 
 </html>

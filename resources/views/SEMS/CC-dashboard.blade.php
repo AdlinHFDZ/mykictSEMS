@@ -19,7 +19,6 @@
                     </li>
                     <li class="breadcrumb-item active" style="color: #000000;">Your Assigned Exams</li>
                 </ul>
-                <p class="text-muted">Logged in as: {{ auth()->user()->name }} (ID: {{ auth()->id() }})</p>
             </div>
         </div>
     </div>
@@ -67,10 +66,10 @@
                                             <td>{{ $exam->section }}</td>
                                             <td>{{ ucfirst($exam->status) }}</td>
                                             <td>
-                                                @if ($exam->status === 'draft question')
-                                                    <a href="{{ route('create.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm bg-primary-light d-flex align-items-center justify-content-center">
-                                                        <i class="fa fa-edit me-0"></i>
-                                                        <span>Create Question</span>
+                                                @if (in_array($exam->status, ['draft question', 'vetted']))
+                                                    <a href="{{ route('create.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm bg-primary-light">
+                                                        <i class="fa fa-edit me-1"></i>
+                                                        {{ $exam->status === 'vetted' ? 'Edit Vetted' : 'Create Question' }}
                                                     </a>
                                                 @else
                                                     <span class="text-muted">Submitted</span>
@@ -91,4 +90,5 @@
         </div>
     </div>
 </div>
+<p class="text-muted">Logged in as: {{ auth()->user()->name }} (ID: {{ auth()->id() }})</p>
 @endsection

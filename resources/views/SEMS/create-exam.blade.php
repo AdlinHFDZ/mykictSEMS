@@ -11,13 +11,13 @@
     <form method="POST" action="{{ route('exam.store') }}">
         @csrf
         <div class="form-group mb-3">
-            <label for="course_name">Course Name</label>
-            <input type="text" class="form-control" name="course_name" required>
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="course_code">Course Code</label>
-            <input type="text" class="form-control" name="course_code" required>
+            <label for="course_id">Select Course</label>
+            <select name="course_id" class="form-control" required>
+                <option value="">-- Choose a Course --</option>
+                @foreach($courses as $course)
+                <option value="{{ $course->id }}">{{ $course->course_code }} - {{ $course->course_name }}</option>
+                @endforeach
+            </select>
         </div>
 
         <div class="form-group mb-3">
