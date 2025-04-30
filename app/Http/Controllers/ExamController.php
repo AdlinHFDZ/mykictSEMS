@@ -10,6 +10,7 @@ use App\Models\Course;
 use App\Models\Semester;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Enums\ExamStatus;
 
 class ExamController extends Controller
 {
@@ -35,12 +36,12 @@ class ExamController extends Controller
             'course_name'  => $course->course_name,
             'section'      => $validated['section'],
             'tos'          => $course->tos,
-            'status'       => 'assign Coordinator',
+            'status'       => ExamStatus::ASSIGN_COORDINATOR,
             'created_by'   => auth()->id(),
             'semester_id'  => $semester?->id,
         ]);
 
-        return redirect()->route('HOD.dashboard')->with('success', 'Exam slot created!');
+        return redirect()->route('HOD.dashboard')->with('success', 'Exam slot created successfully!');
     }
 
     public function showCreateExamForm()
@@ -57,86 +58,84 @@ class ExamController extends Controller
 
     public function assignCoordinator(Request $request)
     {
-        $request->validate([
+        if (!in_array(auth()->user()->role_id, [1, 3])) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $validated = $request->validate([
             'exam_id' => 'required|exists:exams,id',
             'user_id' => 'required|exists:users,id',
         ]);
 
-        CCAssignment::create([
-            'exam_id' => $request->exam_id,
-            'user_id' => $request->user_id,
-        ]);
+        CCAssignment::create($validated);
 
-        Exam::find($request->exam_id)->update(['status' => 'draft question']);
+        Exam::find($validated['exam_id'])->update(['status' => ExamStatus::DRAFT_QUESTION]);
 
         return back()->with('success', 'Course Coordinator assigned successfully!');
     }
 
     public function assignVetter(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'exam_id' => 'required|exists:exams,id',
             'user_id' => 'required|exists:users,id',
         ]);
 
-        $exam = Exam::find($request->exam_id);
+        $exam = Exam::findOrFail($validated['exam_id']);
 
-        if ($exam->status !== 'draft question complete' || empty($exam->questions)) {
-            return back()->with('error', 'Cannot assign vetter. Exam must be in draft complete status with questions.');
-        }
+        // Decode questions
+        $questions = json_decode($exam->questions, true) ?? [];
 
-        $alreadyAssigned = VetterAssignment::where('exam_id', $exam->id)->exists();
-        if ($alreadyAssigned) {
+        if (
+            $exam->status !== ExamStatus::DRAFT_QUESTION_COMPLETE ||
+            empty($questions) ||
+            (is_array($questions) && count(array_filter($questions, function ($q) {
+                return !empty($q['question']);
+            })) === 0)
+        ) //{
+        //     return back()->with('error', 'Cannot assign vetter. Exam must have draft complete status with real questions.');
+        // }
+
+        if (VetterAssignment::where('exam_id', $exam->id)->exists()) {
             return back()->with('error', 'This exam already has a vetter assigned.');
         }
 
-        VetterAssignment::create([
-            'exam_id' => $request->exam_id,
-            'user_id' => $request->user_id,
-        ]);
+        VetterAssignment::create($validated);
 
-        $exam->update(['status' => 'vetting']);
+        $exam->update(['status' => ExamStatus::VETTING]);
 
         return back()->with('success', 'Vetter assigned successfully!');
     }
 
+
     public function assignRole(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'exam_id'   => 'required|exists:exams,id',
             'user_id'   => 'required|exists:users,id',
             'role_type' => 'required|in:cc,vetter',
         ]);
 
-        $exam = Exam::find($request->exam_id);
+        $exam = Exam::find($validated['exam_id']);
 
-        if ($request->role_type === 'cc') {
-            $alreadyAssigned = CCAssignment::where('exam_id', $exam->id)->exists();
-            if ($alreadyAssigned) {
+        if ($validated['role_type'] === 'cc') {
+            if (CCAssignment::where('exam_id', $exam->id)->exists()) {
                 return back()->with('error', 'This exam is already assigned to a Course Coordinator.');
             }
 
-            CCAssignment::create([
-                'exam_id' => $exam->id,
-                'user_id' => $request->user_id,
-            ]);
-
-            $exam->update(['status' => 'draft question']);
+            CCAssignment::create($validated);
+            $exam->update(['status' => ExamStatus::DRAFT_QUESTION]);
 
             return back()->with('success', 'Course Coordinator assigned successfully!');
         }
 
-        if ($request->role_type === 'vetter') {
-            if ($exam->status !== 'draft question complete' || empty($exam->questions)) {
+        if ($validated['role_type'] === 'vetter') {
+            if ($exam->status !== ExamStatus::DRAFT_QUESTION_COMPLETE || empty($exam->questions)) {
                 return back()->with('error', 'Vetter can only be assigned after CC submits the completed draft question.');
             }
 
-            VetterAssignment::create([
-                'exam_id' => $exam->id,
-                'user_id' => $request->user_id,
-            ]);
-
-            $exam->update(['status' => 'vetting']);
+            VetterAssignment::create($validated);
+            $exam->update(['status' => ExamStatus::VETTING]);
 
             return back()->with('success', 'Vetter assigned successfully!');
         }
@@ -151,53 +150,54 @@ class ExamController extends Controller
     */
 
     public function submitQuestion(Request $request)
-    {
-        $validated = $request->validate([
-            'exam_id' => 'required|exists:exams,id',
-            'tos' => 'nullable|array',
-            'question1' => 'nullable|string',
-            'answer1' => 'nullable|string',
-            'question2' => 'nullable|string',
-            'answer2' => 'nullable|string',
-            'question3' => 'nullable|string',
-            'answer3' => 'nullable|string',
-            'question4' => 'nullable|string',
-            'answer4' => 'nullable|string',
-        ]);
+{
+    $validated = $request->validate([
+        'exam_id' => 'required|exists:exams,id',
+        // questions validations...
+    ]);
 
-        $exam = Exam::find($request->exam_id);
+    $exam = Exam::findOrFail($validated['exam_id']);
 
-        $exam->tos = $request->tos ?? [];
-        $exam->questions = json_encode([
-            ['question' => $request->question1, 'answer' => $request->answer1],
-            ['question' => $request->question2, 'answer' => $request->answer2],
-            ['question' => $request->question3, 'answer' => $request->answer3],
-            ['question' => $request->question4, 'answer' => $request->answer4],
-        ]);
+    $exam->questions = json_encode([
+        ['question' => $request->question1, 'answer' => $request->answer1],
+        ['question' => $request->question2, 'answer' => $request->answer2],
+        ['question' => $request->question3, 'answer' => $request->answer3],
+        ['question' => $request->question4, 'answer' => $request->answer4],
+    ]);
 
-        // ✅ Detect if this is resubmission after vetting
-        if ($exam->status === 'vetted') {
-            $exam->status = 'pending approval'; // Skip vetter and go directly to HOD
-        } else {
-            $exam->status = 'draft question complete'; // First time submission goes to vetter
-        }
-
+    // Save draft without changing status
+    if ($request->input('action') === 'draft') {
         $exam->save();
-
-        return redirect()->route('CC.dashboard')->with('success', 'Question submitted successfully.');
+        return redirect()->route('CC.dashboard')->with('success', 'Draft saved successfully.');
     }
 
+    if ($exam->status === ExamStatus::VETTED->value) {
+        $exam->status = ExamStatus::PENDING_APPROVAL->value;
+    } elseif (
+        $exam->status === ExamStatus::DRAFT_QUESTION->value ||
+        $exam->status === ExamStatus::REVISE_REQUESTED->value
+    ) {
+        $exam->status = ExamStatus::DRAFT_QUESTION_COMPLETE->value;
 
+        $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
+        foreach ($tos as &$row) {
+            $row['cc'] = 1;
+        }
+        $exam->tos = $tos;
+    }
+
+    $exam->save();
+
+    return redirect()->route('CC.dashboard')->with('success', 'Question submitted successfully.');
+}
 
     public function showCreateQuestionForm(Request $request)
     {
         $exam = Exam::findOrFail($request->exam_id);
-
-        $vetterComments = $exam->vetter_comments ?? []; // Fetch vetter comments
+        $vetterComments = $exam->vetter_comments ?? [];
 
         return view('SEMS.create-question', compact('exam', 'vetterComments'));
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -207,6 +207,10 @@ class ExamController extends Controller
 
     public function hodDashboard(Request $request)
     {
+        if (auth()->user()->role_id !== 3 && auth()->user()->role_id !== 1) {
+            abort(403, 'Unauthorized.');
+        }
+
         $activeSemester = Semester::where('is_active', true)->first();
         $semesters = Semester::all();
         $status = $request->input('status');
@@ -217,7 +221,7 @@ class ExamController extends Controller
             $query->where('status', $status);
         }
 
-        $exams = auth()->user()->role_id == 1
+        $exams = (auth()->user()->role_id == 1)
             ? $query->get()
             : $query->where('created_by', auth()->id())->get();
 
@@ -233,14 +237,18 @@ class ExamController extends Controller
 
     public function ccDashboard()
     {
-        $user = auth()->user();
-        $activeSemesterId = Semester::where('is_active', true)->value('id');
+        if (auth()->user()->role_id !== 5 && auth()->user()->role_id !== 1) {
+            abort(403, 'Unauthorized.');
+        }
 
-        $exams = $user->role_id == 1
+        $user = auth()->user();
+        $activeSemesterId = $this->getActiveSemesterId();
+
+        $exams = ($user->role_id == 1)
             ? Exam::where('semester_id', $activeSemesterId)->get()
             : Exam::whereIn('id', CCAssignment::where('user_id', $user->id)->pluck('exam_id'))
-                   ->where('semester_id', $activeSemesterId)
-                   ->get();
+                  ->where('semester_id', $activeSemesterId)
+                  ->get();
 
         $semesters = Semester::all();
         $activeSemester = Semester::where('is_active', true)->first();
@@ -250,12 +258,18 @@ class ExamController extends Controller
 
     public function vetterDashboard()
     {
-        $user = auth()->user();
-        $activeSemesterId = Semester::where('is_active', true)->value('id');
+        if (auth()->user()->role_id !== 5 && auth()->user()->role_id !== 1) {
+            abort(403, 'Unauthorized.');
+        }
 
-        $exams = $user->role_id == 1
+        $user = auth()->user();
+        $activeSemesterId = $this->getActiveSemesterId();
+
+        $exams = ($user->role_id == 1)
             ? Exam::where('semester_id', $activeSemesterId)->get()
-            : Exam::whereIn('id', VetterAssignment::where('user_id', $user->id)->pluck('exam_id'))->get();
+            : Exam::whereIn('id', VetterAssignment::where('user_id', $user->id)->pluck('exam_id'))
+                  ->where('semester_id', $activeSemesterId)
+                  ->get();
 
         $semesters = Semester::all();
         $activeSemester = Semester::where('is_active', true)->first();
@@ -265,12 +279,15 @@ class ExamController extends Controller
 
     public function showSEMSDashboard()
     {
-        $user = auth()->user();
+        if (auth()->user()->role_id != 1) {
+            abort(403, 'Unauthorized.');
+        }
+
         $semesters = Semester::all();
         $activeSemester = Semester::where('is_active', true)->first();
-        $exams = Exam::all(); // Or you can filter by role if needed
+        $exams = Exam::all();
 
-        return view('SEMS.SEMS-dashboard', compact('role_id', 'exams', 'semesters', 'activeSemester'));
+        return view('SEMS.SEMS-dashboard', compact('exams', 'semesters', 'activeSemester'));
     }
 
     /*
@@ -281,42 +298,51 @@ class ExamController extends Controller
 
     public function showVetterReview(Request $request)
     {
-
         $exam = Exam::findOrFail($request->exam_id);
         return view('SEMS.question-review', compact('exam'));
     }
+
     public function submitVetterReview(Request $request)
-    {
-        $request->validate([
-            'exam_id' => 'required|exists:exams,id',
-            'comments' => 'nullable|array',
-            'tos' => 'nullable|array',
-        ]);
+{
+    $validated = $request->validate([
+        'exam_id' => 'required|exists:exams,id',
+        'comments' => 'nullable|array',
+        'tos' => 'nullable|array',
+    ]);
 
-        $exam = Exam::findOrFail($request->exam_id);
+    $exam = Exam::findOrFail($validated['exam_id']);
 
-        // ✅ Update only Vetter TOS, keep CC, HOD, Spec
-        $originalTos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
-        $submittedTos = $request->tos ?? [];
+    // Decode original data
+    $originalTos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
+    $submittedTos = $validated['tos'] ?? [];
 
-        foreach ($originalTos as $index => &$row) {
-            if (isset($submittedTos[$index]['vetter'])) {
-                $row['vetter'] = 1;
-            } else {
-                $row['vetter'] = 0;
-            }
-        }
-        $exam->tos = $originalTos;
-
-        // Update Comments
-        $exam->vetter_comments = $request->comments ?? [];
-        $exam->status = 'vetted'; // After Vetter
-        $exam->save();
-
-        return redirect()->route('vetters.dashboard')->with('success', 'Review submitted successfully!');
+    foreach ($originalTos as $index => &$row) {
+        $row['vetter'] = isset($submittedTos[$index]['vetter']) ? 1 : 0;
     }
 
+    $exam->tos = $originalTos;
 
+    // Handle vetter comments
+    $newComments = $validated['comments'] ?? [];
+
+    // Get existing comment history (array of arrays)
+    $existingHistory = json_decode($exam->vetter_comments, true) ?? [];
+
+    // Append new structured logs
+    foreach ($newComments as $index => $commentText) {
+        $existingHistory[$index][] = [
+            'name' => auth()->user()->name,
+            'timestamp' => now()->toDateTimeString(),
+            'comment' => $commentText,
+        ];
+    }
+
+    $exam->vetter_comments = $existingHistory;
+    $exam->status = ExamStatus::VETTED;
+    $exam->save();
+
+    return redirect()->route('vetters.dashboard')->with('success', 'Review submitted successfully!');
+}
 
 
     public function vetterReviewPage(Request $request)
@@ -334,7 +360,6 @@ class ExamController extends Controller
     public function activate(Request $request, Semester $semester)
     {
         Semester::query()->update(['is_active' => false]);
-
         $semester->is_active = true;
         $semester->save();
 
@@ -347,60 +372,77 @@ class ExamController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    function getActiveSemesterId()
+    private function getActiveSemesterId()
     {
         return Semester::where('is_active', true)->value('id');
     }
 
-
     public function approveExam(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'exam_id' => 'required|exists:exams,id',
             'tos' => 'nullable|array',
         ]);
 
-        $exam = Exam::findOrFail($request->exam_id);
-
-        // ✅ Update only HOD TOS, keep CC, Vetter, Spec
+        $exam = Exam::findOrFail($validated['exam_id']);
         $originalTos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
-        $submittedTos = $request->tos ?? [];
+        $submittedTos = $validated['tos'] ?? [];
 
         foreach ($originalTos as $index => &$row) {
-            if (isset($submittedTos[$index]['hod'])) {
-                $row['hod'] = 1;
-            } else {
-                $row['hod'] = 0;
-            }
+            $row['hod'] = isset($submittedTos[$index]['hod']) ? 1 : 0;
         }
-        $exam->tos = $originalTos;
 
-        $exam->status = 'approved'; // After HOD Approval
+        $exam->tos = $originalTos;
+        $exam->status = ExamStatus::APPROVED;
         $exam->save();
 
         return redirect()->route('HOD.dashboard')->with('success', 'Exam approved successfully!');
     }
 
-
-
     public function denyQuestion(Request $request)
     {
         $exam = Exam::findOrFail($request->exam_id);
-        $exam->status = 'draft question';
+
+        // ❌ Remove previous vetter assignments
+        \App\Models\VetterAssignment::where('exam_id', $exam->id)->delete();
+
+        // 🔁 Reset status so CC can revise
+        $exam->status = \App\Enums\ExamStatus::DRAFT_QUESTION;
+
         $exam->save();
 
-        return back()->with('error', 'Exam denied. Sent back to CC.');
+        return back()->with('error', 'Exam denied. Sent back to CC for revision.');
     }
+
 
     public function showApprovalQuestion(Request $request)
     {
         $examId = $request->query('exam_id');
         $exam = Exam::findOrFail($examId);
 
-        // Decode TOS properly before passing to Blade
         $exam->tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
+        $exam->vetter_comments = is_array($exam->vetter_comments) ? $exam->vetter_comments : json_decode($exam->vetter_comments, true) ?? [];
 
-        return view('SEMS.approval-question', compact('exam'));
+        // Optional history log
+        $exam->vetter_comments_log = is_array($exam->vetter_comments_log)
+            ? $exam->vetter_comments_log
+            : json_decode($exam->vetter_comments_log, true) ?? [];
+
+        return view('SEMS.approval-question', [
+            'exam' => $exam,
+            'vetterCommentsLog' => $exam->vetter_comments_log,
+        ]);
     }
+
+
+    public function viewQuestion(Request $request)
+{
+    $exam = Exam::findOrFail($request->exam_id);
+    $questions = json_decode($exam->questions, true) ?? [];
+    $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
+    $vetterComments = is_array($exam->vetter_comments) ? $exam->vetter_comments : json_decode($exam->vetter_comments, true) ?? [];
+
+    return view('SEMS.view-question', compact('exam', 'questions', 'tos', 'vetterComments'));
+}
 
 }

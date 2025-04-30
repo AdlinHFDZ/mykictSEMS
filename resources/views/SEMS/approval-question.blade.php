@@ -1,6 +1,10 @@
 @extends('layouts.master')
 
 @section('content')
+@php
+    use App\Enums\ExamStatus;
+@endphp
+
 <div class="content container-fluid">
     <div class="page-header">
         <h3 class="text-center">Review Exam (Final Approval)</h3>
@@ -15,8 +19,38 @@
         <input type="hidden" name="exam_id" value="{{ $exam->id }}">
 
         <div class="card p-4">
-            <h5><strong>Course:</strong> {{ $exam->course_name }} ({{ $exam->course_code }})</h5>
-            <p><strong>Section:</strong> {{ $exam->section }}</p>
+            <div class="row mb-4">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-group row">
+                                <label class="col-form-label col-md-4">Course Name</label>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" value="{{ $exam->course_name }}" disabled>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-form-label col-md-4">Course Code</label>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" value="{{ $exam->course_code }}" disabled>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-form-label col-md-4">Section</label>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" value="{{ $exam->section }}" disabled>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-form-label col-md-4">Semester</label>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" value="{{ $exam->semester->name ?? 'N/A' }}" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <hr>
 
@@ -24,6 +58,7 @@
                 $questions = json_decode($exam->questions, true) ?? [];
                 $vetterComments = is_array($exam->vetter_comments) ? $exam->vetter_comments : json_decode($exam->vetter_comments, true) ?? [];
                 $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
+                $vetterCommentsLog = $vetterCommentsLog ?? [];
             @endphp
 
             <!-- TOS Table -->
@@ -71,21 +106,39 @@
 
             <!-- Questions -->
             @foreach ($questions as $index => $q)
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <strong>Question {{ $index + 1 }}</strong>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Question:</strong> {!! $q['question'] ?? 'N/A' !!}</p>
-                        <p><strong>Answer:</strong> {!! $q['answer'] ?? 'N/A' !!}</p>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <strong>Question {{ $index + 1 }}</strong>
+                </div>
+                <div class="card-body">
+                    <p><strong>Question:</strong> {!! $q['question'] ?? 'N/A' !!}</p>
+                    <p><strong>Answer:</strong> {!! $q['answer'] ?? 'N/A' !!}</p>
 
-                        @if(isset($vetterComments[$index]))
-                            <div class="alert alert-warning mt-2">
-                                <strong>Vetter Comment:</strong> {{ $vetterComments[$index] }}
-                            </div>
-                        @endif
+                    <!-- ✅ Vetter Review History -->
+                    <div class="mt-4">
+                        <h6 class="mb-3 text-primary">📝 Vetter Review History</h6>
+                        <ul class="list-group">
+                            @if (isset($vetterComments[$index]) && is_array($vetterComments[$index]))
+                                @foreach ($vetterComments[$index] as $log)
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <strong>{{ $log['name'] ?? 'Unknown Vetter' }}</strong>
+                                                <div class="text-muted small">{{ $log['timestamp'] ?? 'No timestamp' }}</div>
+                                            </div>
+                                            <span class="badge bg-secondary">Cycle {{ $loop->iteration }}</span>
+                                        </div>
+                                        <hr class="my-2" />
+                                        <div class="fst-italic">{{ $log['comment'] ?? 'No comment provided.' }}</div>
+                                    </li>
+                                @endforeach
+                            @else
+                                <li class="list-group-item text-muted">No previous review history.</li>
+                            @endif
+                        </ul>
                     </div>
                 </div>
+            </div>
             @endforeach
 
             <div class="text-center mt-4">

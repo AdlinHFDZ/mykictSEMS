@@ -1,6 +1,10 @@
 @extends('layouts.master')
 
 @section('content')
+@php
+    use App\Enums\ExamStatus;
+@endphp
+
 <style>
     .table th, .table td {
         vertical-align: middle;
@@ -44,9 +48,17 @@
             <div class="col-auto">
                 <select name="status" id="statusFilter" class="form-select" onchange="this.form.submit()">
                     <option value="">All</option>
-                    @foreach(['assign Coordinator', 'draft question', 'draft question complete', 'vetting', 'vetted', 'pending approval', 'approved'] as $status)
-                        <option value="{{ $status }}" {{ request('status') == $status ? 'selected' : '' }}>
-                            {{ ucfirst($status) }}
+                    @foreach ([
+                        ExamStatus::ASSIGN_COORDINATOR,
+                        ExamStatus::DRAFT_QUESTION,
+                        ExamStatus::DRAFT_QUESTION_COMPLETE,
+                        ExamStatus::VETTING,
+                        ExamStatus::VETTED,
+                        ExamStatus::PENDING_APPROVAL,
+                        ExamStatus::APPROVED
+                    ] as $status)
+                        <option value="{{ $status->value }}" {{ request('status') == $status->value ? 'selected' : '' }}>
+                            {{ ucfirst($status->value) }}
                         </option>
                     @endforeach
                 </select>
@@ -95,6 +107,16 @@
                                     @php
                                         $ccAssignedId = optional($exam->ccAssignment)->user_id;
                                         $vetterAssignedIds = $exam->vetterAssignments->pluck('user_id')->toArray();
+                                        $badge = match($exam->status) {
+                                            ExamStatus::ASSIGN_COORDINATOR->value => 'warning',
+                                            ExamStatus::DRAFT_QUESTION->value => 'primary',
+                                            ExamStatus::DRAFT_QUESTION_COMPLETE->value => 'info',
+                                            ExamStatus::VETTING->value => 'secondary',
+                                            ExamStatus::VETTED->value => 'dark',
+                                            ExamStatus::PENDING_APPROVAL->value => 'secondary',
+                                            ExamStatus::APPROVED->value => 'success',
+                                            default => 'light'
+                                        };
                                     @endphp
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
@@ -102,18 +124,6 @@
                                         <td>{{ $exam->course_name }}</td>
                                         <td>{{ $exam->section }}</td>
                                         <td>
-                                            @php
-                                                $badge = match($exam->status) {
-                                                    'assign Coordinator' => 'warning',
-                                                    'draft question' => 'primary',
-                                                    'draft question complete' => 'info',
-                                                    'vetting' => 'secondary',
-                                                    'vetted' => 'dark',
-                                                    'pending approval' => 'secondary',
-                                                    'approved' => 'success',
-                                                    default => 'light'
-                                                };
-                                            @endphp
                                             <span class="badge bg-{{ $badge }}">{{ ucfirst($exam->status) }}</span>
                                         </td>
                                         <td>
@@ -128,7 +138,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if ($exam->status === 'assign Coordinator')
+                                            @if ($exam->status === ExamStatus::ASSIGN_COORDINATOR->value)
                                                 <form method="POST" action="{{ route('assign.role') }}" class="d-flex justify-content-center align-items-center">
                                                     @csrf
                                                     <input type="hidden" name="exam_id" value="{{ $exam->id }}">
@@ -144,7 +154,7 @@
                                                     <button type="submit" class="btn btn-sm btn-primary">Assign</button>
                                                 </form>
 
-                                            @elseif ($exam->status === 'draft question complete')
+                                            @elseif ($exam->status === ExamStatus::DRAFT_QUESTION_COMPLETE->value)
                                                 <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#assignVetterModal{{ $exam->id }}">
                                                     Assign Vetter
                                                 </button>
@@ -164,8 +174,7 @@
                                                                     <select name="user_id" class="form-select" required>
                                                                         <option value="">Select Vetter</option>
                                                                         @foreach ($academicians as $user)
-                                                                            @if (!\App\Models\VetterAssignment::where('exam_id', $exam->id)
-                                                                                ->where('user_id', $user->id)->exists())
+                                                                            @if (!\App\Models\VetterAssignment::where('exam_id', $exam->id)->where('user_id', $user->id)->exists())
                                                                                 <option value="{{ $user->id }}">{{ $user->name }}</option>
                                                                             @endif
                                                                         @endforeach
@@ -180,7 +189,7 @@
                                                     </div>
                                                 </div>
 
-                                                @elseif ($exam->status === 'pending approval')
+                                            @elseif ($exam->status === ExamStatus::PENDING_APPROVAL->value)
                                                 <a href="{{ route('approval.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-info mb-1">
                                                     View Question
                                                 </a>
@@ -197,8 +206,12 @@
                                                     <button type="submit" class="btn btn-sm btn-danger">Deny ❌</button>
                                                 </form>
 
+                                            @else
                                                 <span class="text-muted">Assigned</span>
                                             @endif
+                                            <a href="{{ route('view.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-outline-info">
+                                                👁 View
+                                            </a>
                                         </td>
                                     </tr>
                                 @empty

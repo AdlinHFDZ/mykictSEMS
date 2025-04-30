@@ -1,6 +1,10 @@
 @extends('layouts.master')
 
 @section('content')
+@php
+    use App\Enums\ExamStatus;
+@endphp
+
 <style>
     .table th, .table td {
         vertical-align: middle;
@@ -55,15 +59,18 @@
                                         <td>{{ $exam->section }}</td>
                                         <td>{{ ucfirst($exam->status) }}</td>
                                         <td>
-                                            @if ($exam->status === 'vetting')
+                                            @if ($exam->status === ExamStatus::VETTING->value)
                                                 <a href="{{ route('question.review', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-primary">
                                                     Review Questions
                                                 </a>
-                                            @elseif ($exam->status === 'vetted')
+                                            @elseif ($exam->status === ExamStatus::VETTED->value)
                                                 <span class="text-muted">Reviewed ✅</span>
                                             @else
                                                 <span class="text-muted">No Action</span>
                                             @endif
+                                            <a href="{{ route('view.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-outline-info">
+                                                👁 View
+                                            </a>
                                         </td>
                                     </tr>
                                 @empty

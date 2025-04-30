@@ -1,6 +1,10 @@
 @extends('layouts.master')
 
 @section('content')
+@php
+    use App\Enums\ExamStatus;
+@endphp
+
 <style>
     .table th, .table td {
         vertical-align: middle;
@@ -66,20 +70,33 @@
                                             <td>{{ $exam->section }}</td>
                                             <td>{{ ucfirst($exam->status) }}</td>
                                             <td>
-                                                @if (in_array($exam->status, ['draft question', 'vetted']))
+                                                @if (
+                                                    in_array($exam->status, [
+                                                        ExamStatus::DRAFT_QUESTION->value,
+                                                        ExamStatus::REVISE_REQUESTED->value,
+                                                        ExamStatus::VETTED->value
+                                                    ])
+                                                )
                                                     <a href="{{ route('create.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm bg-primary-light">
                                                         <i class="fa fa-edit me-1"></i>
-                                                        {{ $exam->status === 'vetted' ? 'Edit Vetted' : 'Create Question' }}
+                                                        {{
+                                                            $exam->status === ExamStatus::VETTED->value ? 'Edit Vetted' :
+                                                            ($exam->status === ExamStatus::REVISE_REQUESTED->value ? 'Revise Denied' : 'Create Question')
+                                                        }}
                                                     </a>
                                                 @else
                                                     <span class="text-muted">Submitted</span>
                                                 @endif
+                                                <a href="{{ route('view.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-outline-info">
+                                                    👁 View
+                                                </a>
+
                                             </td>
                                         </tr>
                                     @endif
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-muted">No exams assigned.</td>
+                                        <td colspan="6" class="text-muted text-center">No exams assigned yet.</td>
                                     </tr>
                                 @endforelse
                             </tbody>

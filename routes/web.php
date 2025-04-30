@@ -11,7 +11,7 @@ use App\Models\Exam;
 
 /*
 |--------------------------------------------------------------------------
-| Public Routes
+| Public Route
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
@@ -20,30 +20,20 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| SEMS (Smart Examination Management System) Routes
+| SEMS Routes (Smart Examination Management System)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | SEMS Dashboard
+    | SEMS Dashboard (Super Admin Only)
     |--------------------------------------------------------------------------
     */
     Route::get('/SEMS-dashboard', function () {
-        $user = Auth::user();
-        $activeSemesterId = Semester::where('is_active', true)->value('id');
-        $exams = Exam::where('semester_id', $activeSemesterId)->get();
-        $semesters = Semester::all();
-        $activeSemester = Semester::where('is_active', true)->first();
-
-        return view('SEMS.SEMS-dashboard', [
-            'role_id' => $user->role_id,
-            'exams' => $exams,
-            'semesters' => $semesters,
-            'activeSemester' => $activeSemester
-        ]);
+        return view('SEMS.SEMS-dashboard');
     })->name('SEMS.dashboard');
+
 
     /*
     |--------------------------------------------------------------------------
@@ -52,35 +42,46 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::controller(ExamController::class)->group(function () {
 
-        // Create Exam Slot
+        // Create Exam Slot (HOD + Admin only)
         Route::get('/create-exam', 'showCreateExamForm')->name('exam.create');
         Route::post('/store-exam', 'store')->name('exam.store');
 
-        // Create Question
+        // Create and Submit Questions (CC only)
         Route::get('/create-question', 'showCreateQuestionForm')->name('create.question');
         Route::post('/submit-question', 'submitQuestion')->name('exam.submit-question');
 
-        // Assign Roles
+        // Assign Coordinator and Vetter (HOD only)
         Route::get('/assign-role', 'showAssignRoleForm')->name('assign.role.form');
         Route::post('/assign-role', 'assignRole')->name('assign.role');
         Route::post('/assign-vetter', 'assignVetter')->name('assign.vetter');
 
-        // Dashboards
+        // HOD Dashboard
         Route::get('/HOD-dashboard', 'hodDashboard')->name('HOD.dashboard');
+
+        // CC Dashboard
         Route::get('/CC-dashboard', 'ccDashboard')->name('CC.dashboard');
+
+        // Vetter Dashboard
         Route::get('/vetters-dashboard', 'vetterDashboard')->name('vetters.dashboard');
+
+        // Approval (HOD only)
+        Route::get('/approval-question', 'showApprovalQuestion')->name('approval.question');
+        Route::post('/exam/approve', 'approveExam')->name('exam.approve');
+        Route::post('/exam-deny', 'denyQuestion')->name('exam.deny');
+
+        Route::get('/view-question', [ExamController::class, 'viewQuestion'])->name('view.question');
+
 
         // Vetter Review Section
         Route::prefix('vetter')->group(function () {
             Route::get('/question-review', 'vetterReviewPage')->name('question.review');
             Route::post('/question-review', 'submitVetterReview')->name('question.review.submit');
         });
-
     });
 
     /*
     |--------------------------------------------------------------------------
-    | Course Management
+    | Course Management (Super Admin + HOD)
     |--------------------------------------------------------------------------
     */
     Route::controller(CourseController::class)->prefix('courses')->group(function () {
@@ -91,7 +92,7 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Semester Management
+    | Semester Management (Super Admin Only)
     |--------------------------------------------------------------------------
     */
     Route::controller(SemesterController::class)->prefix('semesters')->group(function () {
@@ -99,24 +100,18 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', 'store')->name('semesters.store');
         Route::patch('/{semester}/activate', 'activate')->name('semesters.activate');
     });
-
-
-    Route::get('/approval-question', [App\Http\Controllers\ExamController::class, 'showApprovalQuestion'])->name('approval.question');
-    Route::post('/exam/approve', [ExamController::class, 'approveExam'])->name('exam.approve');
-    Route::post('/exam-deny', [ExamController::class, 'denyQuestion'])->name('exam.deny');
-
 });
 
 /*
 |--------------------------------------------------------------------------
-| PDF Generation
+| PDF Generation (Available to Authenticated Users)
 |--------------------------------------------------------------------------
 */
-Route::post('/generate-pdf', [PDFController::class, 'generate'])->name('pdf.generate');
+Route::post('/generate-pdf', [PDFController::class, 'generate'])->middleware('auth')->name('pdf.generate');
 
 /*
 |--------------------------------------------------------------------------
-| Default Authenticated Dashboards (Jetstream / Breeze)
+| Jetstream/Breeze Default Dashboards (Admin System)
 |--------------------------------------------------------------------------
 */
 Route::middleware([
@@ -124,12 +119,12 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-
     Route::view('/dashboard', 'admin/welcome-dashboard')->name('dashboard');
     Route::view('/admin-dashboard', 'admin/admin-dashboard')->name('admin.dashboard');
     Route::view('/teacher-dashboard', 'admin/teacher-dashboard')->name('teacher.dashboard');
     Route::view('/student-dashboard', 'admin/student-dashboard')->name('student.dashboard');
 });
+
 
 /*
 |--------------------------------------------------------------------------

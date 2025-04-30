@@ -1,16 +1,44 @@
 @extends('layouts.master')
 
 @section('content')
-<div class="container mt-5">
-    <h2 class="mb-4">Review Exam: {{ $exam->course_name }} ({{ $exam->course_code }})</h2>
+@php
+    use App\Enums\ExamStatus;
+@endphp
 
-    <div class="mb-4">
-        <strong>Section:</strong> {{ $exam->section }} <br>
-        <strong>Status:</strong>
-        <span class="badge bg-{{ $exam->status == 'vetting' ? 'warning' : 'success' }}">
-            {{ ucfirst($exam->status) }}
-        </span>
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group row">
+                        <label class="col-form-label col-md-4">Course Name</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" value="{{ $exam->course_name }}" disabled>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-md-4">Course Code</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" value="{{ $exam->course_code }}" disabled>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-md-4">Section</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" value="{{ $exam->section }}" disabled>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-form-label col-md-4">Semester</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" value="{{ $exam->semester->name ?? 'N/A' }}" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
 
     <form method="POST" action="{{ route('question.review.submit') }}">
         @csrf

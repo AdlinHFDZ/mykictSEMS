@@ -54,6 +54,12 @@
                                 <input type="text" class="form-control" value="{{ Auth::user()->name }}" disabled>
                             </div>
                         </div>
+                        <div class="form-group row">
+                            <label class="col-form-label col-md-4">Semester</label>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" value="{{ $exam->semester->name ?? 'N/A' }}" disabled>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -121,24 +127,44 @@
                             <textarea class="tinymce form-control" name="answer{{ $i + 1 }}">{{ $questions[$i]['answer'] ?? '' }}</textarea>
                         </div>
                     </div>
-                    @if (isset($vetterComments[$i]))
-                        <div class="alert alert-warning mt-3">
-                            <strong>Vetter Comment:</strong> {{ $vetterComments[$i] }}
-                        </div>
-                    @endif
+
+                    <!-- ✅ Vetter Review History -->
+                    <div class="mt-4">
+                        <h6 class="mb-3 text-primary">📝 Vetter Review History</h6>
+                        <ul class="list-group">
+                            @if (isset($vetterComments[$index]) && is_array($vetterComments[$index]))
+                                @foreach ($vetterComments[$index] as $log)
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <strong>{{ $log['name'] ?? 'Unknown Vetter' }}</strong>
+                                                <div class="text-muted small">{{ $log['timestamp'] ?? 'No timestamp' }}</div>
+                                            </div>
+                                            <span class="badge bg-secondary">Cycle {{ $loop->iteration }}</span>
+                                        </div>
+                                        <hr class="my-2" />
+                                        <div class="fst-italic">{{ $log['comment'] ?? 'No comment provided.' }}</div>
+                                    </li>
+                                @endforeach
+                            @else
+                                <li class="list-group-item text-muted">No previous review history.</li>
+                            @endif
+                        </ul>
+                    </div>
                 </div>
             </div>
         @endfor
 
         <div class="text-center">
             <button type="submit" class="btn btn-primary">Send to Department</button>
+            <button type="submit" name="action" value="draft" class="btn btn-outline-secondary">Save as Draft</button>
         </div>
     </form>
 </div>
 @endsection
 
 @push('scripts')
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+{{-- <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
     tinymce.init({
         selector: 'textarea.tinymce',
@@ -151,5 +177,5 @@
         ],
         toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help'
     });
-</script>
+</script> --}}
 @endpush
