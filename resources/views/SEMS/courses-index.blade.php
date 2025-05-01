@@ -31,55 +31,59 @@
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered align-middle">
-                    <thead class="table-light text-center">
+                <table class="table table-bordered text-center align-middle">
+                    <thead class="table-light">
                         <tr>
                             <th>#</th>
                             <th>Course Code</th>
                             <th>Course Name</th>
-                            <th>Table of Specification (TOS)</th>
+                            <th>TOS</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($courses as $course)
-                        <tr>
-                            <td class="text-center">{{ $loop->iteration }}</td>
-                            <td class="text-center">{{ $course->course_code }}</td>
-                            <td>{{ $course->course_name }}</td>
-                            <td>
-                                <table class="table table-sm mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>CO / C</th>
-                                            <th>C1</th>
-                                            <th>C2</th>
-                                            <th>C3</th>
-                                            <th>C4</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach(['CO1','CO2','CO3'] as $co)
-                                        <tr>
-                                            <td>{{ $co }}</td>
-                                            @for ($i = 1; $i <= 4; $i++)
-                                                <td>
-                                                    @if(optional($course->tos)[$co]['C'.$i] ?? false)
-                                                        ✅
-                                                    @else
-                                                        ❌
-                                                    @endif
-                                                </td>
-                                            @endfor
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
+                            @php
+                                $tos = is_array($course->tos) ? $course->tos : json_decode($course->tos, true) ?? [];
+                            @endphp
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $course->course_code }}</td>
+                                <td>{{ $course->course_name }}</td>
+                                <td>
+                                    @if (!empty($tos))
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                View TOS
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                @foreach ($tos as $item)
+                                                    <li class="dropdown-item">{{ $item['spec'] ?? '-' }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @else
+                                        <span class="text-muted">No TOS</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <a href="{{ route('courses.edit', $course->id) }}" class="btn btn-sm btn-warning me-1">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+
+                                    <form action="{{ route('courses.destroy', $course->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this course?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
                         @empty
-                        <tr>
-                            <td colspan="4" class="text-center text-muted">No courses found.</td>
-                        </tr>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No courses found.</td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>

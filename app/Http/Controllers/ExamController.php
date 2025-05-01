@@ -393,11 +393,21 @@ class ExamController extends Controller
         }
 
         $exam->tos = $originalTos;
+
+        // Handle button action
+        if ($request->input('action') === 'draft') {
+            $exam->status = ExamStatus::PENDING_APPROVAL;
+            $exam->save();
+            return back()->with('success', 'Saved as draft. You can continue reviewing later.');
+        }
+
+        // Default: final approval
         $exam->status = ExamStatus::APPROVED;
         $exam->save();
 
         return redirect()->route('HOD.dashboard')->with('success', 'Exam approved successfully!');
     }
+
 
     public function denyQuestion(Request $request)
     {

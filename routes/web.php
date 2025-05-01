@@ -20,59 +20,54 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| SEMS Routes (Smart Examination Management System)
+| SEMS Protected Routes (Requires Auth)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | SEMS Dashboard (Super Admin Only)
+    | SEMS Main Dashboard (Super Admin Only)
     |--------------------------------------------------------------------------
     */
     Route::get('/SEMS-dashboard', function () {
         return view('SEMS.SEMS-dashboard');
     })->name('SEMS.dashboard');
 
-
     /*
     |--------------------------------------------------------------------------
-    | Exam Management
+    | ExamController - Exam Lifecycle (All Roles As Needed)
     |--------------------------------------------------------------------------
     */
     Route::controller(ExamController::class)->group(function () {
 
-        // Create Exam Slot (HOD + Admin only)
+        // Exam Creation (HOD)
         Route::get('/create-exam', 'showCreateExamForm')->name('exam.create');
         Route::post('/store-exam', 'store')->name('exam.store');
 
-        // Create and Submit Questions (CC only)
+        // Question Management (CC)
         Route::get('/create-question', 'showCreateQuestionForm')->name('create.question');
         Route::post('/submit-question', 'submitQuestion')->name('exam.submit-question');
 
-        // Assign Coordinator and Vetter (HOD only)
+        // Assignments (HOD)
         Route::get('/assign-role', 'showAssignRoleForm')->name('assign.role.form');
         Route::post('/assign-role', 'assignRole')->name('assign.role');
         Route::post('/assign-vetter', 'assignVetter')->name('assign.vetter');
 
-        // HOD Dashboard
+        // Dashboards
         Route::get('/HOD-dashboard', 'hodDashboard')->name('HOD.dashboard');
-
-        // CC Dashboard
         Route::get('/CC-dashboard', 'ccDashboard')->name('CC.dashboard');
-
-        // Vetter Dashboard
         Route::get('/vetters-dashboard', 'vetterDashboard')->name('vetters.dashboard');
 
-        // Approval (HOD only)
+        // Approval (HOD)
         Route::get('/approval-question', 'showApprovalQuestion')->name('approval.question');
         Route::post('/exam/approve', 'approveExam')->name('exam.approve');
         Route::post('/exam-deny', 'denyQuestion')->name('exam.deny');
 
-        Route::get('/view-question', [ExamController::class, 'viewQuestion'])->name('view.question');
+        // View-only mode (All Roles)
+        Route::get('/view-question', 'viewQuestion')->name('view.question');
 
-
-        // Vetter Review Section
+        // Vetter Review
         Route::prefix('vetter')->group(function () {
             Route::get('/question-review', 'vetterReviewPage')->name('question.review');
             Route::post('/question-review', 'submitVetterReview')->name('question.review.submit');
@@ -81,18 +76,14 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Course Management (Super Admin + HOD)
+    | CourseController - Course Management (Super Admin + HOD)
     |--------------------------------------------------------------------------
     */
-    Route::controller(CourseController::class)->prefix('courses')->group(function () {
-        Route::get('/', 'index')->name('courses.index');
-        Route::get('/create', 'create')->name('courses.create');
-        Route::post('/', 'store')->name('courses.store');
-    });
+    Route::resource('courses', CourseController::class);
 
     /*
     |--------------------------------------------------------------------------
-    | Semester Management (Super Admin Only)
+    | SemesterController - Semester Lifecycle (Super Admin Only)
     |--------------------------------------------------------------------------
     */
     Route::controller(SemesterController::class)->prefix('semesters')->group(function () {
@@ -104,14 +95,16 @@ Route::middleware(['auth'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| PDF Generation (Available to Authenticated Users)
+| PDF Generator (Authenticated Users Only)
 |--------------------------------------------------------------------------
 */
-Route::post('/generate-pdf', [PDFController::class, 'generate'])->middleware('auth')->name('pdf.generate');
+Route::post('/generate-pdf', [PDFController::class, 'generate'])
+    ->middleware('auth')
+    ->name('pdf.generate');
 
 /*
 |--------------------------------------------------------------------------
-| Jetstream/Breeze Default Dashboards (Admin System)
+| Jetstream/Breeze Dashboards
 |--------------------------------------------------------------------------
 */
 Route::middleware([
