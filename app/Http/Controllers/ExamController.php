@@ -201,7 +201,7 @@ class ExamController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Dashboards (HOD, CC, Vetter, SEMS)
+    | Dashboards (HOD, CC, Vetter, SEMS) GO
     |--------------------------------------------------------------------------
     */
 
@@ -290,6 +290,25 @@ class ExamController extends Controller
         return view('SEMS.SEMS-dashboard', compact('exams', 'semesters', 'activeSemester'));
     }
 
+    public function generalOfficeDashboard(Request $request)
+    {
+        if (auth()->user()->role_id !== 7 && auth()->user()->role_id !== 1) {
+            abort(403, 'Unauthorized.');
+        }
+    
+        $activeSemester = Semester::where('is_active', true)->first();
+        $semesters = Semester::all();
+    
+        $exams = Exam::where('status',ExamStatus::APPROVED->value)->get();//where('semester_id', $activeSemester->id)
+                //->
+                    
+    
+        return view('SEMS.general-office-dashboard', compact('exams', 'semesters', 'activeSemester'));
+    }
+    
+    
+
+ 
     /*
     |--------------------------------------------------------------------------
     | Vetter Review

@@ -58,6 +58,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/HOD-dashboard', 'hodDashboard')->name('HOD.dashboard');
         Route::get('/CC-dashboard', 'ccDashboard')->name('CC.dashboard');
         Route::get('/vetters-dashboard', 'vetterDashboard')->name('vetters.dashboard');
+        Route::get('/general-office-dashboard', 'generalOfficeDashboard')->name('generalOffice.dashboard');
 
         // Approval (HOD)
         Route::get('/approval-question', 'showApprovalQuestion')->name('approval.question');
@@ -98,6 +99,21 @@ Route::middleware(['auth'])->group(function () {
 | PDF Generator (Authenticated Users Only)
 |--------------------------------------------------------------------------
 */
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/general-office', [ExamController::class, 'generalOfficeDashboard'])
+        ->name('general.office')
+        ->middleware('role:7,1');
+});
+
+
+
+
+
+
+Route::get('/pdf/download/{id}', [PDFController::class, 'download'])->name('pdf.download');
+
+
 Route::post('/generate-pdf', [PDFController::class, 'generate'])
     ->middleware('auth')
     ->name('pdf.generate');

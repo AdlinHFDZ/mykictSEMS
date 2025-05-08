@@ -76,6 +76,18 @@
         <script>
             window.location.href = "{{ route('vetters.dashboard') }}";
         </script>
-    @endif
+    
+
+
+    {{-- General Office View --}}
+    @elseif ($roleId == 7)
+        <div class="alert alert-info">
+            Redirecting to General Office Dashboard...
+        </div>
+        <script>
+            window.location.href = "{{ route('generalOffice.dashboard') }}";
+        </script>
+    @endif        
+
 </div>
 @endsection

@@ -45,4 +45,10 @@ class Exam extends Model
     {
         return $this->belongsTo(Course::class);
     }
+
+    public function createdBy() {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+    
+    
 }
