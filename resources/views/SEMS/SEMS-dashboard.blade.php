@@ -26,6 +26,7 @@
             <a href="{{ route('HOD.dashboard') }}" class="btn btn-outline-primary">HOD Dashboard</a>
             <a href="{{ route('CC.dashboard') }}" class="btn btn-outline-primary">CC Dashboard</a>
             <a href="{{ route('vetters.dashboard') }}" class="btn btn-outline-primary">Vetters Page</a>
+            <a href="{{ route('generalOffice.dashboard') }}" class="btn btn-outline-primary">GO dashboard</a>
         </div>
 
         <div>
@@ -76,7 +77,7 @@
         <script>
             window.location.href = "{{ route('vetters.dashboard') }}";
         </script>
-    
+
 
 
     {{-- General Office View --}}
@@ -87,7 +88,7 @@
         <script>
             window.location.href = "{{ route('generalOffice.dashboard') }}";
         </script>
-    @endif        
+    @endif
 
 </div>
 @endsection

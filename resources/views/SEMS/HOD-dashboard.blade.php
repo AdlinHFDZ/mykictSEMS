@@ -209,9 +209,15 @@
                                             @else
                                                 <span class="text-muted">Assigned</span>
                                             @endif
-                                            <a href="{{ route('view.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-outline-info">
+
+                                            <a href="{{ route('pdf.view', $exam->id) }}" class="btn btn-sm btn-outline-primary" target="_blank">View PDF</a>
+                                            <a href="{{ route('pdf.download', $exam->id) }}" class="btn btn-sm btn-outline-success">Download PDF</a>
+
+                                            <td>
+                                                <a href="{{ route('view.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-outline-info">
                                                 👁 View
-                                            </a>
+                                                </a>
+                                            </td>
                                         </td>
                                     </tr>
                                 @empty

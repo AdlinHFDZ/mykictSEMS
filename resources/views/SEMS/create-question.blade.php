@@ -113,6 +113,37 @@
             </div>
         </div>
 
+        <div class="card p-3 mb-4">
+    <h5>Exam Settings</h5>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label for="exam_date" class="form-label">Exam Date</label>
+            <input type="date" name="exam_date" id="exam_date"
+                value="{{ old('exam_date', $exam->exam_date ? \Carbon\Carbon::parse($exam->exam_date)->format('Y-m-d') : '') }}"
+                class="form-control">
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="exam_time" class="form-label">Exam Time</label>
+            <input type="text" name="exam_time" id="exam_time"
+                   value="{{ old('exam_time', $exam->exam_time) }}"
+                   placeholder="e.g. 9:00 AM – 12:00 PM"
+                   class="form-control">
+        </div>
+        <div class="col-md-4 mb-3">
+            <label for="duration" class="form-label">Duration</label>
+            <input type="text" name="duration" id="duration"
+                   value="{{ old('duration', $exam->duration) }}"
+                   placeholder="e.g. 3 Hours"
+                   class="form-control">
+        </div>
+        <div class="col-md-12 mb-3">
+            <label for="instruction" class="form-label">Exam Instructions</label>
+            <textarea name="instruction" id="instruction" class="form-control"
+                      rows="4" placeholder="Write instructions here...">{{ old('instruction', $exam->instruction) }}</textarea>
+        </div>
+    </div>
+</div>
+
         {{-- Question Editor Section --}}
         @for ($i = 0; $i < 4; $i++)
             <div class="card mb-4">

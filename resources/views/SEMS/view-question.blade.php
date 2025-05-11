@@ -1,6 +1,7 @@
 @extends('layouts.master')
 
 @section('content')
+
 <div class="content container-fluid">
     <div class="page-header">
         <h3 class="text-center">View Exam</h3>
@@ -10,57 +11,82 @@
         </ul>
     </div>
 
-{{-- Exam Overview Summary --}}
-<div class="row justify-content-center mb-4">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
+    {{-- Exam Overview Summary --}}
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
 
-                {{-- Title & Status --}}
-                <div class="text-center mb-4">
-                    <h4 class="fw-bold mb-2">{{ $exam->course_name }} <small class="text-muted">({{ $exam->course_code }})</small></h4>
-                    <p class="mb-1"><strong>Section:</strong> {{ $exam->section }}</p>
-                    <p class="mb-1"><strong>Status:</strong>
-                        <span class="badge bg-{{ $exam->status == 'vetting' ? 'warning text-dark' : 'secondary' }}">
-                            {{ ucfirst($exam->status) }}
-                        </span>
-                    </p>
-                    <p class="mb-0"><strong>Semester:</strong> {{ $exam->semester->name ?? 'N/A' }}</p>
+                    {{-- Title & Status --}}
+                    <div class="text-center mb-4">
+                        <h4 class="fw-bold mb-2">
+                            {{ $exam->course_name }}
+                            <small class="text-muted">({{ $exam->course_code }})</small>
+                        </h4>
+                        <p class="mb-1"><strong>Section:</strong> {{ $exam->section }}</p>
+                        <p class="mb-1"><strong>Status:</strong>
+                            <span class="badge bg-{{ $exam->status == 'vetting' ? 'warning text-dark' : 'secondary' }}">
+                                {{ ucfirst($exam->status) }}
+                            </span>
+                        </p>
+                        <p class="mb-0"><strong>Semester:</strong> {{ $exam->semester->name ?? 'N/A' }}</p>
+                    </div>
+
+                    <hr class="mb-4">
+
+                    {{-- Exam Details --}}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold"><i class="bi bi-journal-text me-1"></i> Course Name</label>
+                            <input type="text" class="form-control bg-light" value="{{ $exam->course_name }}" disabled>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold"><i class="bi bi-code-slash me-1"></i> Course Code</label>
+                            <input type="text" class="form-control bg-light" value="{{ $exam->course_code }}" disabled>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold"><i class="bi bi-layers me-1"></i> Section</label>
+                            <input type="text" class="form-control bg-light" value="{{ $exam->section }}" disabled>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold"><i class="bi bi-person-badge me-1"></i> Coordinator</label>
+                            <input type="text" class="form-control bg-light" value="{{ $exam->createdBy->name ?? Auth::user()->name }}" disabled>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold"><i class="bi bi-calendar-event me-1"></i> Semester</label>
+                            <input type="text" class="form-control bg-light" value="{{ $exam->semester->name ?? 'N/A' }}" disabled>
+                        </div>
+
+                        {{-- Optional: Exam Settings --}}
+                        @if ($exam->exam_date)
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold"><i class="bi bi-calendar-check me-1"></i> Exam Date</label>
+                                <input type="text" class="form-control bg-light" value="{{ \Carbon\Carbon::parse($exam->exam_date)->format('d/m/Y') }}" disabled>
+                            </div>
+                        @endif
+                        @if ($exam->exam_time)
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold"><i class="bi bi-clock me-1"></i> Exam Time</label>
+                                <input type="text" class="form-control bg-light" value="{{ $exam->exam_time }}" disabled>
+                            </div>
+                        @endif
+                        @if ($exam->duration)
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold"><i class="bi bi-hourglass me-1"></i> Duration</label>
+                                <input type="text" class="form-control bg-light" value="{{ $exam->duration }}" disabled>
+                            </div>
+                        @endif
+                        @if ($exam->instruction)
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-semibold"><i class="bi bi-info-circle me-1"></i> Instructions</label>
+                                <textarea class="form-control bg-light" rows="3" disabled>{{ $exam->instruction }}</textarea>
+                            </div>
+                        @endif
+                    </div>
                 </div>
-
-                {{-- Divider --}}
-                <hr class="mb-4">
-
-                {{-- Detail Info --}}
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-journal-text me-1"></i> Course Name</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->course_name }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-code-slash me-1"></i> Course Code</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->course_code }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-layers me-1"></i> Section</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->section }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-person-badge me-1"></i> Coordinator</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->createdBy->name ?? Auth::user()->name }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-calendar-event me-1"></i> Semester</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->semester->name ?? 'N/A' }}" disabled>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
-</div>
-
-
 
     <!-- TOS Table -->
     <div class="card mb-4">
@@ -82,18 +108,10 @@
                     @forelse ($tos as $index => $row)
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>
-                                <input type="text" class="form-control" value="{{ $row['spec'] ?? '' }}" readonly>
-                            </td>
-                            <td>
-                                <input type="checkbox" disabled {{ !empty($row['cc']) ? 'checked' : '' }}>
-                            </td>
-                            <td>
-                                <input type="checkbox" disabled {{ !empty($row['vetter']) ? 'checked' : '' }}>
-                            </td>
-                            <td>
-                                <input type="checkbox" disabled {{ !empty($row['hod']) ? 'checked' : '' }}>
-                            </td>
+                            <td><input type="text" class="form-control" value="{{ $row['spec'] ?? '' }}" readonly></td>
+                            <td><input type="checkbox" disabled {{ !empty($row['cc']) ? 'checked' : '' }}></td>
+                            <td><input type="checkbox" disabled {{ !empty($row['vetter']) ? 'checked' : '' }}></td>
+                            <td><input type="checkbox" disabled {{ !empty($row['hod']) ? 'checked' : '' }}></td>
                         </tr>
                     @empty
                         <tr>
@@ -115,29 +133,29 @@
                 <p><strong>Question:</strong> {!! $q['question'] ?? 'N/A' !!}</p>
                 <p><strong>Answer:</strong> {!! $q['answer'] ?? 'N/A' !!}</p>
 
-                    <!-- ✅ Vetter Review History -->
-                    <div class="mt-4">
-                        <h6 class="mb-3 text-primary">📝 Vetter Review History</h6>
-                        <ul class="list-group">
-                            @if (isset($vetterComments[$index]) && is_array($vetterComments[$index]))
-                                @foreach ($vetterComments[$index] as $log)
-                                    <li class="list-group-item">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <strong>{{ $log['name'] ?? 'Unknown Vetter' }}</strong>
-                                                <div class="text-muted small">{{ $log['timestamp'] ?? 'No timestamp' }}</div>
-                                            </div>
-                                            <span class="badge bg-secondary">Cycle {{ $loop->iteration }}</span>
+                <!-- ✅ Vetter Review History -->
+                <div class="mt-4">
+                    <h6 class="mb-3 text-primary">📝 Vetter Review History</h6>
+                    <ul class="list-group">
+                        @if (isset($vetterComments[$index]) && is_array($vetterComments[$index]))
+                            @foreach ($vetterComments[$index] as $log)
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>{{ $log['name'] ?? 'Unknown Vetter' }}</strong>
+                                            <div class="text-muted small">{{ $log['timestamp'] ?? 'No timestamp' }}</div>
                                         </div>
-                                        <hr class="my-2" />
-                                        <div class="fst-italic">{{ $log['comment'] ?? 'No comment provided.' }}</div>
-                                    </li>
-                                @endforeach
-                            @else
-                                <li class="list-group-item text-muted">No previous review history.</li>
-                            @endif
-                        </ul>
-                    </div>
+                                        <span class="badge bg-secondary">Cycle {{ $loop->iteration }}</span>
+                                    </div>
+                                    <hr class="my-2" />
+                                    <div class="fst-italic">{{ $log['comment'] ?? 'No comment provided.' }}</div>
+                                </li>
+                            @endforeach
+                        @else
+                            <li class="list-group-item text-muted">No previous review history.</li>
+                        @endif
+                    </ul>
+                </div>
             </div>
         </div>
     @endforeach
@@ -146,4 +164,5 @@
         <a href="{{ url()->previous() }}" class="btn btn-outline-secondary">⬅ Back</a>
     </div>
 </div>
+
 @endsection

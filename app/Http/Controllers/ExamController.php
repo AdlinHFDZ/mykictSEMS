@@ -149,15 +149,24 @@ class ExamController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function submitQuestion(Request $request)
+public function submitQuestion(Request $request)
 {
     $validated = $request->validate([
-        'exam_id' => 'required|exists:exams,id',
-        // questions validations...
+        'exam_id'     => 'required|exists:exams,id',
+        'exam_date'   => 'nullable|date',
+        'exam_time'   => 'nullable|string|max:255',
+        'duration'    => 'nullable|string|max:255',
+        'instruction' => 'nullable|string',
+
+        // Optional: You can validate questions if needed
+        // 'question1' => 'required|string',
+        // 'answer1' => 'nullable|string',
+        // ...
     ]);
 
     $exam = Exam::findOrFail($validated['exam_id']);
 
+    // Save questions
     $exam->questions = json_encode([
         ['question' => $request->question1, 'answer' => $request->answer1],
         ['question' => $request->question2, 'answer' => $request->answer2],
@@ -165,12 +174,19 @@ class ExamController extends Controller
         ['question' => $request->question4, 'answer' => $request->answer4],
     ]);
 
-    // Save draft without changing status
+    // Save exam settings
+    $exam->exam_date   = $request->exam_date;
+    $exam->exam_time   = $request->exam_time;
+    $exam->duration    = $request->duration;
+    $exam->instruction = $request->instruction;
+
+    // If saving as draft only
     if ($request->input('action') === 'draft') {
         $exam->save();
         return redirect()->route('CC.dashboard')->with('success', 'Draft saved successfully.');
     }
 
+    // Status update logic
     if ($exam->status === ExamStatus::VETTED->value) {
         $exam->status = ExamStatus::PENDING_APPROVAL->value;
     } elseif (
@@ -179,6 +195,7 @@ class ExamController extends Controller
     ) {
         $exam->status = ExamStatus::DRAFT_QUESTION_COMPLETE->value;
 
+        // Update TOS - CC confirmation
         $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
         foreach ($tos as &$row) {
             $row['cc'] = 1;
@@ -190,6 +207,7 @@ class ExamController extends Controller
 
     return redirect()->route('CC.dashboard')->with('success', 'Question submitted successfully.');
 }
+
 
     public function showCreateQuestionForm(Request $request)
     {
@@ -295,20 +313,20 @@ class ExamController extends Controller
         if (auth()->user()->role_id !== 7 && auth()->user()->role_id !== 1) {
             abort(403, 'Unauthorized.');
         }
-    
+
         $activeSemester = Semester::where('is_active', true)->first();
         $semesters = Semester::all();
-    
+
         $exams = Exam::where('status',ExamStatus::APPROVED->value)->get();//where('semester_id', $activeSemester->id)
                 //->
-                    
-    
+
+
         return view('SEMS.general-office-dashboard', compact('exams', 'semesters', 'activeSemester'));
     }
-    
-    
 
- 
+
+
+
     /*
     |--------------------------------------------------------------------------
     | Vetter Review
@@ -399,11 +417,17 @@ class ExamController extends Controller
     public function approveExam(Request $request)
     {
         $validated = $request->validate([
-            'exam_id' => 'required|exists:exams,id',
-            'tos' => 'nullable|array',
+            'exam_id'     => 'required|exists:exams,id',
+            'tos'         => 'nullable|array',
+            'exam_date'   => 'nullable|date',
+            'exam_time'   => 'nullable|string|max:255',
+            'duration'    => 'nullable|string|max:255',
+            'instruction' => 'nullable|string',
         ]);
 
         $exam = Exam::findOrFail($validated['exam_id']);
+
+        // TOS update (if any)
         $originalTos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
         $submittedTos = $validated['tos'] ?? [];
 
@@ -413,19 +437,26 @@ class ExamController extends Controller
 
         $exam->tos = $originalTos;
 
-        // Handle button action
+        // Save new fields
+        $exam->exam_date   = $request->exam_date;
+        $exam->exam_time   = $request->exam_time;
+        $exam->duration    = $request->duration;
+        $exam->instruction = $request->instruction;
+
+        // Draft or Approval
         if ($request->input('action') === 'draft') {
             $exam->status = ExamStatus::PENDING_APPROVAL;
             $exam->save();
             return back()->with('success', 'Saved as draft. You can continue reviewing later.');
         }
 
-        // Default: final approval
+        // Final Approval
         $exam->status = ExamStatus::APPROVED;
         $exam->save();
 
         return redirect()->route('HOD.dashboard')->with('success', 'Exam approved successfully!');
     }
+
 
 
     public function denyQuestion(Request $request)

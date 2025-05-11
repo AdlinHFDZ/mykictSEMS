@@ -10,48 +10,43 @@ class PDFController extends Controller
 {
     public function download($id)
     {
+        $exam = Exam::with(['createdBy', 'semester'])->findOrFail($id);
+        $questions = json_decode($exam->questions, true) ?? [];
+        $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
+
+        $questionCount = count(array_filter($questions, fn($q) => !empty($q['question'])));
+
+        $pdf = Pdf::loadView('pdf.exam-paper', compact('exam', 'questions', 'tos', 'questionCount'))
+                  ->setPaper('A4');
+
+        $dompdf = $pdf->getDomPDF();
+        $canvas = $dompdf->get_canvas();
+        $canvas->page_text(280, 820, "Page {PAGE_NUM} of {PAGE_COUNT}", null, 10, [0, 0, 0]);
+
+        return $pdf->download("Exam_Paper_{$exam->course_code}.pdf");
+    }
+
+
+
+    public function view($id)
+    {
         $exam = Exam::with('semester')->findOrFail($id);
         $questions = json_decode($exam->questions, true) ?? [];
+        $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
 
-        $html = "
-        <html>
-        <head>
-            <style>
-                body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
-                h2, h4 { text-align: center; margin: 0; }
-                .metadata { margin: 10px 0 20px; }
-                .question-block { margin-bottom: 40px; page-break-inside: avoid; }
-                .line { border-bottom: 1px solid #000; height: 18px; margin: 4px 0; }
-            </style>
-        </head>
-        <body>
-            <h2>EXAM PAPER</h2>
-            <h4>{$exam->course_name} ({$exam->course_code})</h4>
+        $questionCount = count(array_filter($questions, fn($q) => !empty($q['question'])));
 
-            <div class='metadata'>
-                <p><strong>Section:</strong> {$exam->section}</p>
-                <p><strong>Semester:</strong> " . ($exam->semester->name ?? '-') . "</p>
-            </div>
-        ";
+        $pdf = Pdf::loadView('pdf.exam-paper', compact('exam', 'questions', 'tos', 'questionCount'))
+                  ->setPaper('A4');
 
-        foreach ($questions as $index => $q) {
-            if (!empty($q['question'])) {
-                $mark = !empty($q['mark']) ? "<em>[{$q['mark']} marks]</em>" : "";
-                $html .= "
-                    <div class='question-block'>
-                        <strong>Section " . ($index + 1) . ": Question " . ($index + 1) . "</strong><br>
-                        <p>{$q['question']}</p>
-                        <p>{$mark}</p>
-                        " . str_repeat("<div class='line'></div>", 6) . "
-                    </div>
-                ";
-            }
-        }
+        $dompdf = $pdf->getDomPDF();
+        $canvas = $dompdf->get_canvas();
+        $canvas->page_text(280, 820, "Page {PAGE_NUM} of {PAGE_COUNT}", null, 10, [0, 0, 0]);
 
-        $html .= "</body></html>";
-
-        return Pdf::loadHTML($html)->setPaper('A4')->download("Exam_Paper_{$exam->course_code}.pdf");
+        return $pdf->stream("Exam_Paper_{$exam->course_code}.pdf");
     }
+
+
 }
 
 

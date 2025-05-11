@@ -35,29 +35,58 @@
                 {{-- Divider --}}
                 <hr class="mb-4">
 
-                {{-- Detail Info --}}
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-journal-text me-1"></i> Course Name</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->course_name }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-code-slash me-1"></i> Course Code</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->course_code }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-layers me-1"></i> Section</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->section }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-person-badge me-1"></i> Coordinator</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->createdBy->name ?? Auth::user()->name }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-calendar-event me-1"></i> Semester</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->semester->name ?? 'N/A' }}" disabled>
-                    </div>
-                </div>
+
+{{-- Detail Info --}}
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label class="form-label fw-semibold"><i class="bi bi-journal-text me-1"></i> Course Name</label>
+        <input type="text" class="form-control bg-light" value="{{ $exam->course_name }}" disabled>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label fw-semibold"><i class="bi bi-code-slash me-1"></i> Course Code</label>
+        <input type="text" class="form-control bg-light" value="{{ $exam->course_code }}" disabled>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label fw-semibold"><i class="bi bi-layers me-1"></i> Section</label>
+        <input type="text" class="form-control bg-light" value="{{ $exam->section }}" disabled>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label fw-semibold"><i class="bi bi-person-badge me-1"></i> Coordinator</label>
+        <input type="text" class="form-control bg-light" value="{{ $exam->createdBy->name ?? Auth::user()->name }}" disabled>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label fw-semibold"><i class="bi bi-calendar-event me-1"></i> Semester</label>
+        <input type="text" class="form-control bg-light" value="{{ $exam->semester->name ?? 'N/A' }}" disabled>
+    </div>
+
+    {{-- Additional Exam Settings --}}
+    @if ($exam->exam_date)
+        <div class="col-md-4 mb-3">
+            <label class="form-label fw-semibold"><i class="bi bi-calendar-check me-1"></i> Exam Date</label>
+            <input type="text" class="form-control bg-light" value="{{ \Carbon\Carbon::parse($exam->exam_date)->format('d/m/Y') }}" disabled>
+        </div>
+    @endif
+    @if ($exam->exam_time)
+        <div class="col-md-4 mb-3">
+            <label class="form-label fw-semibold"><i class="bi bi-clock me-1"></i> Exam Time</label>
+            <input type="text" class="form-control bg-light" value="{{ $exam->exam_time }}" disabled>
+        </div>
+    @endif
+    @if ($exam->duration)
+        <div class="col-md-4 mb-3">
+            <label class="form-label fw-semibold"><i class="bi bi-hourglass me-1"></i> Duration</label>
+            <input type="text" class="form-control bg-light" value="{{ $exam->duration }}" disabled>
+        </div>
+    @endif
+    @if ($exam->instruction)
+        <div class="col-md-12 mb-3">
+            <label class="form-label fw-semibold"><i class="bi bi-info-circle me-1"></i> Instructions</label>
+            <textarea class="form-control bg-light" rows="3" disabled>{{ $exam->instruction }}</textarea>
+        </div>
+    @endif
+</div>
+
+
 
             </div>
         </div>
