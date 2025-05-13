@@ -71,7 +71,6 @@
         <div class="col-sm-12">
             <div class="card card-table">
                 <div class="card-body">
-
                     <div class="page-header">
                         <div class="row align-items-center">
                             <div class="col">
@@ -108,14 +107,14 @@
                                         $ccAssignedId = optional($exam->ccAssignment)->user_id;
                                         $vetterAssignedIds = $exam->vetterAssignments->pluck('user_id')->toArray();
                                         $badge = match($exam->status) {
-                                            ExamStatus::ASSIGN_COORDINATOR->value => 'warning',
-                                            ExamStatus::DRAFT_QUESTION->value => 'primary',
-                                            ExamStatus::DRAFT_QUESTION_COMPLETE->value => 'info',
-                                            ExamStatus::VETTING->value => 'secondary',
-                                            ExamStatus::VETTED->value => 'dark',
-                                            ExamStatus::PENDING_APPROVAL->value => 'secondary',
-                                            ExamStatus::APPROVED->value => 'success',
-                                            default => 'light'
+                                            ExamStatus::ASSIGN_COORDINATOR->value      => 'bg-warning text-dark',
+                                            ExamStatus::DRAFT_QUESTION->value          => 'bg-secondary',
+                                            ExamStatus::DRAFT_QUESTION_COMPLETE->value => 'bg-info text-white',
+                                            ExamStatus::VETTING->value                 => 'bg-secondary',
+                                            ExamStatus::VETTED->value                  => 'bg-dark',
+                                            ExamStatus::PENDING_APPROVAL->value        => 'bg-primary',
+                                            ExamStatus::APPROVED->value                => 'bg-success',
+                                            default                                     => 'bg-light text-muted'
                                         };
                                     @endphp
                                     <tr>
@@ -123,9 +122,7 @@
                                         <td>{{ $exam->course_code }}</td>
                                         <td>{{ $exam->course_name }}</td>
                                         <td>{{ $exam->section }}</td>
-                                        <td>
-                                            <span class="badge bg-{{ $badge }}">{{ ucfirst($exam->status) }}</span>
-                                        </td>
+                                        <td><span class="badge {{ $badge }}">{{ ucfirst($exam->status) }}</span></td>
                                         <td>
                                             @if ($ccAssignedId)
                                                 <strong>CC:</strong> {{ optional($exam->ccAssignment->user)->name }}
@@ -134,25 +131,47 @@
                                             @endif
 
                                             @if (count($vetterAssignedIds))
-                                                <br><strong>Vetter:</strong> {{ implode(', ', $exam->vetterAssignments->pluck('user.name')->filter()->toArray()) }}
+                                                <br><strong>Vetter:</strong><br>
+                                                {!! implode('<br>', $exam->vetterAssignments->pluck('user.name')->filter()->toArray()) !!}
                                             @endif
                                         </td>
                                         <td>
+                                            <div class="d-grid gap-1">
                                             @if ($exam->status === ExamStatus::ASSIGN_COORDINATOR->value)
-                                                <form method="POST" action="{{ route('assign.role') }}" class="d-flex justify-content-center align-items-center">
-                                                    @csrf
-                                                    <input type="hidden" name="exam_id" value="{{ $exam->id }}">
-                                                    <input type="hidden" name="role_type" value="cc">
-                                                    <select name="user_id" class="form-select form-select-sm me-2" required>
-                                                        <option value="">Select CC</option>
-                                                        @foreach ($academicians as $user)
-                                                            @if (!\App\Models\CCAssignment::where('user_id', $user->id)->exists())
-                                                                <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                                            @endif
-                                                        @endforeach
-                                                    </select>
-                                                    <button type="submit" class="btn btn-sm btn-primary">Assign</button>
-                                                </form>
+                                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#assignCCModal{{ $exam->id }}">
+                                                    Assign CC
+                                                </button>
+
+                                                <!-- Assign CC Modal -->
+                                                <div class="modal fade" id="assignCCModal{{ $exam->id }}" tabindex="-1" aria-labelledby="assignCCModalLabel{{ $exam->id }}" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <form method="POST" action="{{ route('assign.role') }}">
+                                                                @csrf
+                                                                <input type="hidden" name="exam_id" value="{{ $exam->id }}">
+                                                                <input type="hidden" name="role_type" value="cc">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title" id="assignCCModalLabel{{ $exam->id }}">Assign Course Coordinator</h5>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <select name="user_id" class="form-select" required>
+                                                                        <option value="">Select CC</option>
+                                                                        @foreach ($academicians as $user)
+                                                                            @if (!\App\Models\CCAssignment::where('user_id', $user->id)->exists())
+                                                                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                                                            @endif
+                                                                        @endforeach
+                                                                    </select>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Back</button>
+                                                                    <button type="submit" class="btn btn-primary">Assign</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
                                             @elseif ($exam->status === ExamStatus::DRAFT_QUESTION_COMPLETE->value)
                                                 <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#assignVetterModal{{ $exam->id }}">
@@ -181,7 +200,7 @@
                                                                     </select>
                                                                 </div>
                                                                 <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Back</button>
                                                                     <button type="submit" class="btn btn-warning">Assign</button>
                                                                 </div>
                                                             </form>
@@ -190,34 +209,18 @@
                                                 </div>
 
                                             @elseif ($exam->status === ExamStatus::PENDING_APPROVAL->value)
-                                                <a href="{{ route('approval.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-info mb-1">
-                                                    View Question
-                                                </a>
-
-                                                <form method="POST" action="{{ route('exam.approve') }}" class="d-inline">
-                                                    @csrf
-                                                    <input type="hidden" name="exam_id" value="{{ $exam->id }}">
-                                                    <button type="submit" class="btn btn-sm btn-success mb-1">Approve ✅</button>
-                                                </form>
-
-                                                <form method="POST" action="{{ route('exam.deny') }}" class="d-inline">
-                                                    @csrf
-                                                    <input type="hidden" name="exam_id" value="{{ $exam->id }}">
-                                                    <button type="submit" class="btn btn-sm btn-danger">Deny ❌</button>
-                                                </form>
+                                                <a href="{{ route('approval.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-info">View Question</a>
 
                                             @else
-                                                <span class="text-muted">Assigned</span>
+                                                <span class="text-muted">
+                                                        <i class="fas fa-check-circle me-1 text-success"></i> Assigned
+                                                </span>
                                             @endif
 
                                             <a href="{{ route('pdf.view', $exam->id) }}" class="btn btn-sm btn-outline-primary" target="_blank">View PDF</a>
                                             <a href="{{ route('pdf.download', $exam->id) }}" class="btn btn-sm btn-outline-success">Download PDF</a>
-
-                                            <td>
-                                                <a href="{{ route('view.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-outline-info">
-                                                👁 View
-                                                </a>
-                                            </td>
+                                            <a href="{{ route('view.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-outline-info">👁 View</a>
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
@@ -227,7 +230,6 @@
                                 @endforelse
                             </tbody>
                         </table>
-
                     </div>
                 </div>
             </div>

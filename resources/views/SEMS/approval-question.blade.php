@@ -175,12 +175,21 @@
             </div>
         @endforeach
 
-        <!-- Buttons -->
-        <div class="text-center mt-4">
-            <button type="submit" name="action" value="approve" class="btn btn-success">Approve ✅</button>
-            <button type="submit" name="action" value="draft" class="btn btn-outline-secondary">Save as Draft</button>
-            <a href="{{ route('HOD.dashboard') }}" class="btn btn-secondary">⬅ Back</a>
-        </div>
-    </form>
+ <!-- Buttons -->
+<div class="text-center mt-4 d-flex flex-wrap justify-content-center gap-2">
+    <button type="submit" name="action" value="approve" class="btn btn-success">
+        ✅ Approve
+    </button>
+    <button type="submit" name="action" value="deny" class="btn btn-danger">
+        ❌ Deny
+    </button>
+    <button type="submit" name="action" value="draft" class="btn btn-outline-secondary">
+        💾 Save as Draft
+    </button>
+    <a href="{{ route('HOD.dashboard') }}" class="btn btn-secondary">
+        ⬅ Back
+    </a>
+</div>
+
 </div>
 @endsection

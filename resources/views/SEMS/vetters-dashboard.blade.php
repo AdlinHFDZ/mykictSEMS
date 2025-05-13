@@ -57,7 +57,24 @@
                                         <td>{{ $exam->course_code }}</td>
                                         <td>{{ $exam->course_name }}</td>
                                         <td>{{ $exam->section }}</td>
-                                        <td>{{ ucfirst($exam->status) }}</td>
+                                            @php
+                                                $statusBadge = match($exam->status) {
+                                                    ExamStatus::ASSIGN_COORDINATOR->value      => 'bg-warning text-dark',
+                                                    ExamStatus::DRAFT_QUESTION->value          => 'bg-secondary text-white',
+                                                    ExamStatus::DRAFT_QUESTION_COMPLETE->value => 'bg-info text-white',
+                                                    ExamStatus::VETTING->value                 => 'bg-secondary text-white',
+                                                    ExamStatus::VETTED->value                  => 'bg-dark text-white',
+                                                    ExamStatus::REVISE_REQUESTED->value        => 'bg-danger text-white',
+                                                    ExamStatus::PENDING_APPROVAL->value        => 'bg-primary text-white',
+                                                    ExamStatus::APPROVED->value                => 'bg-success text-white',
+                                                    default                                     => 'bg-light text-muted'
+                                                };
+                                            @endphp
+                                            <td>
+                                                <span class="badge {{ $statusBadge }}">
+                                                    {{ ucwords(str_replace('_', ' ', $exam->status)) }}
+                                                </span>
+                                            </td>
                                         <td>
                                             @if ($exam->status === ExamStatus::VETTING->value)
                                                 <a href="{{ route('question.review', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-primary">

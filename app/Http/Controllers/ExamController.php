@@ -414,65 +414,61 @@ public function submitQuestion(Request $request)
         return Semester::where('is_active', true)->value('id');
     }
 
-    public function approveExam(Request $request)
-    {
-        $validated = $request->validate([
-            'exam_id'     => 'required|exists:exams,id',
-            'tos'         => 'nullable|array',
-            'exam_date'   => 'nullable|date',
-            'exam_time'   => 'nullable|string|max:255',
-            'duration'    => 'nullable|string|max:255',
-            'instruction' => 'nullable|string',
-        ]);
+public function approveExam(Request $request)
+{
+    $validated = $request->validate([
+        'exam_id'     => 'required|exists:exams,id',
+        'tos'         => 'nullable|array',
+        'exam_date'   => 'nullable|date',
+        'exam_time'   => 'nullable|string|max:255',
+        'duration'    => 'nullable|string|max:255',
+        'instruction' => 'nullable|string',
+    ]);
 
-        $exam = Exam::findOrFail($validated['exam_id']);
+    $exam = Exam::findOrFail($validated['exam_id']);
 
-        // TOS update (if any)
-        $originalTos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
-        $submittedTos = $validated['tos'] ?? [];
+    // ✅ Update TOS with HOD input
+    $originalTos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
+    $submittedTos = $validated['tos'] ?? [];
 
-        foreach ($originalTos as $index => &$row) {
-            $row['hod'] = isset($submittedTos[$index]['hod']) ? 1 : 0;
-        }
-
-        $exam->tos = $originalTos;
-
-        // Save new fields
-        $exam->exam_date   = $request->exam_date;
-        $exam->exam_time   = $request->exam_time;
-        $exam->duration    = $request->duration;
-        $exam->instruction = $request->instruction;
-
-        // Draft or Approval
-        if ($request->input('action') === 'draft') {
-            $exam->status = ExamStatus::PENDING_APPROVAL;
-            $exam->save();
-            return back()->with('success', 'Saved as draft. You can continue reviewing later.');
-        }
-
-        // Final Approval
-        $exam->status = ExamStatus::APPROVED;
-        $exam->save();
-
-        return redirect()->route('HOD.dashboard')->with('success', 'Exam approved successfully!');
+    foreach ($originalTos as $index => &$row) {
+        $row['hod'] = isset($submittedTos[$index]['hod']) ? 1 : 0;
     }
 
+    $exam->tos = $originalTos;
 
+    // ✅ Save optional metadata
+    $exam->exam_date   = $request->exam_date;
+    $exam->exam_time   = $request->exam_time;
+    $exam->duration    = $request->duration;
+    $exam->instruction = $request->instruction;
 
-    public function denyQuestion(Request $request)
-    {
-        $exam = Exam::findOrFail($request->exam_id);
+    $action = $request->input('action');
 
-        // ❌ Remove previous vetter assignments
+    // 💾 Save as Draft
+    if ($action === 'draft') {
+        $exam->status = \App\Enums\ExamStatus::PENDING_APPROVAL;
+        $exam->save();
+
+        return back()->with('success', 'Saved as draft. You can continue reviewing later.');
+    }
+
+    // ❌ Deny
+    if ($action === 'deny') {
         \App\Models\VetterAssignment::where('exam_id', $exam->id)->delete();
-
-        // 🔁 Reset status so CC can revise
         $exam->status = \App\Enums\ExamStatus::DRAFT_QUESTION;
-
         $exam->save();
 
-        return back()->with('error', 'Exam denied. Sent back to CC for revision.');
+        return back()->with('error', 'Exam denied. Sent back to Course Coordinator for revision.');
     }
+
+    // ✅ Final Approval
+    $exam->status = \App\Enums\ExamStatus::APPROVED;
+    $exam->save();
+
+    return redirect()->route('HOD.dashboard')->with('success', 'Exam approved successfully!');
+}
+
 
 
     public function showApprovalQuestion(Request $request)
