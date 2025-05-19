@@ -157,22 +157,13 @@ public function submitQuestion(Request $request)
         'exam_time'   => 'nullable|string|max:255',
         'duration'    => 'nullable|string|max:255',
         'instruction' => 'nullable|string',
-
-        // Optional: You can validate questions if needed
-        // 'question1' => 'required|string',
-        // 'answer1' => 'nullable|string',
-        // ...
     ]);
 
     $exam = Exam::findOrFail($validated['exam_id']);
 
-    // Save questions
-    $exam->questions = json_encode([
-        ['question' => $request->question1, 'answer' => $request->answer1],
-        ['question' => $request->question2, 'answer' => $request->answer2],
-        ['question' => $request->question3, 'answer' => $request->answer3],
-        ['question' => $request->question4, 'answer' => $request->answer4],
-    ]);
+    // Save ALL questions (including sub-questions!)
+    $questions = $request->input('questions');
+    $exam->questions = json_encode($questions);
 
     // Save exam settings
     $exam->exam_date   = $request->exam_date;
@@ -186,7 +177,7 @@ public function submitQuestion(Request $request)
         return redirect()->route('CC.dashboard')->with('success', 'Draft saved successfully.');
     }
 
-    // Status update logic
+    // Status update logic (as before)
     if ($exam->status === ExamStatus::VETTED->value) {
         $exam->status = ExamStatus::PENDING_APPROVAL->value;
     } elseif (

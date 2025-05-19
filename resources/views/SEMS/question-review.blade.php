@@ -146,22 +146,40 @@
         </div>
 
         <!-- Questions -->
-        @foreach ($questions as $index => $q)
-            <div class="card mb-4">
-                <div class="card-header">
-                    <strong>Question {{ $index + 1 }}</strong>
-                </div>
-                <div class="card-body">
-                    <p><strong>Question:</strong> {!! $q['question'] ?? 'N/A' !!}</p>
-                    <p><strong>Answer:</strong> {!! $q['answer'] ?? 'N/A' !!}</p>
+<!-- Questions -->
+@foreach ($questions as $index => $q)
+    <div class="card mb-4">
+        <div class="card-header">
+            <strong>Question {{ $index + 1 }}</strong>
+        </div>
+        <div class="card-body">
+            <p><strong>Question:</strong> {!! $q['question'] ?? 'N/A' !!}</p>
+            <p><strong>Answer:</strong> {!! $q['answer'] ?? 'N/A' !!}</p>
 
-                    <div class="form-group mt-3">
-                        <label for="comment{{ $index }}">Your Comment:</label>
-                        <textarea name="comments[{{ $index }}]" id="comment{{ $index }}" rows="3" class="form-control" placeholder="Suggest edits, corrections..."></textarea>
-                    </div>
+            {{-- Sub-Questions --}}
+            @if (!empty($q['sub_questions']))
+                <div class="ms-4 mt-3">
+                    <strong>Sub-Questions:</strong>
+                    @foreach ($q['sub_questions'] as $subIdx => $subQ)
+                        <div class="mb-2">
+                            <span class="fw-bold">{{ is_numeric($subIdx) ? chr(97 + $loop->index) : $subIdx }})</span>
+                            {!! $subQ['question'] ?? '' !!}
+                            @if (!empty($subQ['answer']))
+                                <div><strong>Answer:</strong> {!! $subQ['answer'] !!}</div>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
+            @endif
+
+            <div class="form-group mt-3">
+                <label for="comment{{ $index }}">Your Comment:</label>
+                <textarea name="comments[{{ $index }}]" id="comment{{ $index }}" rows="3" class="form-control" placeholder="Suggest edits, corrections..."></textarea>
             </div>
-        @endforeach
+        </div>
+    </div>
+@endforeach
+
 
         <div class="text-center mt-4">
             <button type="submit" class="btn btn-success">Submit Review ✅</button>

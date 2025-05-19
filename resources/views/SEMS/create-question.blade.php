@@ -21,54 +21,47 @@
         <input type="hidden" name="exam_id" value="{{ $exam->id }}">
 
         {{-- Exam Overview Summary --}}
-<div class="row justify-content-center mb-4">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-
-                {{-- Title & Status --}}
-                <div class="text-center mb-4">
-                    <h4 class="fw-bold mb-2">{{ $exam->course_name }} <small class="text-muted">({{ $exam->course_code }})</small></h4>
-                    <p class="mb-1"><strong>Section:</strong> {{ $exam->section }}</p>
-                    <p class="mb-1"><strong>Status:</strong>
-                        <span class="badge bg-{{ $exam->status == 'vetting' ? 'warning text-dark' : 'secondary' }}">
-                            {{ ucfirst($exam->status) }}
-                        </span>
-                    </p>
-                    <p class="mb-0"><strong>Semester:</strong> {{ $exam->semester->name ?? 'N/A' }}</p>
-                </div>
-
-                <hr class="mb-4">
-
-                {{-- Detail Info --}}
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-journal-text me-1"></i> Course Name</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->course_name }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-code-slash me-1"></i> Course Code</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->course_code }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-layers me-1"></i> Section</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->section }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-person-badge me-1"></i> Coordinator</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->createdBy->name ?? Auth::user()->name }}" disabled>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold"><i class="bi bi-calendar-event me-1"></i> Semester</label>
-                        <input type="text" class="form-control bg-light" value="{{ $exam->semester->name ?? 'N/A' }}" disabled>
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <h4 class="fw-bold mb-2">{{ $exam->course_name }} <small class="text-muted">({{ $exam->course_code }})</small></h4>
+                            <p class="mb-1"><strong>Section:</strong> {{ $exam->section }}</p>
+                            <p class="mb-1"><strong>Status:</strong>
+                                <span class="badge bg-{{ $exam->status == 'vetting' ? 'warning text-dark' : 'secondary' }}">
+                                    {{ ucfirst($exam->status) }}
+                                </span>
+                            </p>
+                            <p class="mb-0"><strong>Semester:</strong> {{ $exam->semester->name ?? 'N/A' }}</p>
+                        </div>
+                        <hr class="mb-4">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold"><i class="bi bi-journal-text me-1"></i> Course Name</label>
+                                <input type="text" class="form-control bg-light" value="{{ $exam->course_name }}" disabled>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold"><i class="bi bi-code-slash me-1"></i> Course Code</label>
+                                <input type="text" class="form-control bg-light" value="{{ $exam->course_code }}" disabled>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold"><i class="bi bi-layers me-1"></i> Section</label>
+                                <input type="text" class="form-control bg-light" value="{{ $exam->section }}" disabled>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold"><i class="bi bi-person-badge me-1"></i> Coordinator</label>
+                                <input type="text" class="form-control bg-light" value="{{ $exam->createdBy->name ?? Auth::user()->name }}" disabled>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold"><i class="bi bi-calendar-event me-1"></i> Semester</label>
+                                <input type="text" class="form-control bg-light" value="{{ $exam->semester->name ?? 'N/A' }}" disabled>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
             </div>
         </div>
-    </div>
-</div>
-
 
         {{-- TOS Table --}}
         <div class="card mb-4">
@@ -113,36 +106,37 @@
             </div>
         </div>
 
+        {{-- Exam Settings --}}
         <div class="card p-3 mb-4">
-    <h5>Exam Settings</h5>
-    <div class="row">
-        <div class="col-md-4 mb-3">
-            <label for="exam_date" class="form-label">Exam Date</label>
-            <input type="date" name="exam_date" id="exam_date"
-                value="{{ old('exam_date', $exam->exam_date ? \Carbon\Carbon::parse($exam->exam_date)->format('Y-m-d') : '') }}"
-                class="form-control">
+            <h5>Exam Settings</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="exam_date" class="form-label">Exam Date</label>
+                    <input type="date" name="exam_date" id="exam_date"
+                        value="{{ old('exam_date', $exam->exam_date ? \Carbon\Carbon::parse($exam->exam_date)->format('Y-m-d') : '') }}"
+                        class="form-control">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="exam_time" class="form-label">Exam Time</label>
+                    <input type="text" name="exam_time" id="exam_time"
+                           value="{{ old('exam_time', $exam->exam_time) }}"
+                           placeholder="e.g. 9:00 AM – 12:00 PM"
+                           class="form-control">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="duration" class="form-label">Duration</label>
+                    <input type="text" name="duration" id="duration"
+                           value="{{ old('duration', $exam->duration) }}"
+                           placeholder="e.g. 3 Hours"
+                           class="form-control">
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label for="instruction" class="form-label">Exam Instructions</label>
+                    <textarea name="instruction" id="instruction" class="form-control"
+                              rows="4" placeholder="Write instructions here...">{{ old('instruction', $exam->instruction) }}</textarea>
+                </div>
+            </div>
         </div>
-        <div class="col-md-4 mb-3">
-            <label for="exam_time" class="form-label">Exam Time</label>
-            <input type="text" name="exam_time" id="exam_time"
-                   value="{{ old('exam_time', $exam->exam_time) }}"
-                   placeholder="e.g. 9:00 AM – 12:00 PM"
-                   class="form-control">
-        </div>
-        <div class="col-md-4 mb-3">
-            <label for="duration" class="form-label">Duration</label>
-            <input type="text" name="duration" id="duration"
-                   value="{{ old('duration', $exam->duration) }}"
-                   placeholder="e.g. 3 Hours"
-                   class="form-control">
-        </div>
-        <div class="col-md-12 mb-3">
-            <label for="instruction" class="form-label">Exam Instructions</label>
-            <textarea name="instruction" id="instruction" class="form-control"
-                      rows="4" placeholder="Write instructions here...">{{ old('instruction', $exam->instruction) }}</textarea>
-        </div>
-    </div>
-</div>
 
         {{-- Question Editor Section --}}
         @for ($i = 0; $i < 4; $i++)
@@ -154,15 +148,39 @@
                     <div class="form-group row">
                         <label class="col-form-label col-md-2">Question</label>
                         <div class="col-md-10">
-                            <textarea class="tinymce form-control" name="question{{ $i + 1 }}">{{ $questions[$i]['question'] ?? '' }}</textarea>
+                            <textarea class="tinymce form-control" name="questions[{{ $i }}][question]">{{ $questions[$i]['question'] ?? '' }}</textarea>
                         </div>
                     </div>
                     <div class="form-group row mt-3">
                         <label class="col-form-label col-md-2">Answer</label>
                         <div class="col-md-10">
-                            <textarea class="tinymce form-control" name="answer{{ $i + 1 }}">{{ $questions[$i]['answer'] ?? '' }}</textarea>
+                            <textarea class="tinymce form-control" name="questions[{{ $i }}][answer]">{{ $questions[$i]['answer'] ?? '' }}</textarea>
                         </div>
                     </div>
+
+                    {{-- Sub-Questions --}}
+                    <hr>
+                    <h6>Sub-Questions</h6>
+<div id="sub-questions-{{ $i }}">
+    @php
+        $subQuestions = $questions[$i]['sub_questions'] ?? [];
+    @endphp
+    @foreach ($subQuestions as $subIndex => $subQ)
+<div class="sub-question-block mb-2 input-group align-items-start">
+    <span class="input-group-text">{{ is_numeric($subIndex) ? chr(97 + $loop->index) : $subIndex }})</span>
+    <div class="flex-grow-1 me-2">
+        <textarea class="form-control tinymce mb-1"
+            name="questions[{{ $i }}][sub_questions][{{ is_numeric($subIndex) ? chr(97 + $subIndex) : $subIndex }}][question]"
+            rows="2" placeholder="Sub-question">{!! $subQ['question'] ?? '' !!}</textarea>
+        <textarea class="form-control tinymce"
+            name="questions[{{ $i }}][sub_questions][{{ is_numeric($subIndex) ? chr(97 + $subIndex) : $subIndex }}][answer]"
+            rows="2" placeholder="Answer">{!! $subQ['answer'] ?? '' !!}</textarea>
+    </div>
+    <button type="button" class="btn btn-danger align-middle-self-stretch" onclick="removeSubQuestion(this)">Remove</button>
+</div>
+    @endforeach
+</div>
+<button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addSubQuestion({{ $i }})">+ Add Sub-question</button>
 
                     {{-- Vetter Comments (Collapsible) --}}
                     <div class="mt-4">
@@ -208,21 +226,69 @@
 @endsection
 
 @push('scripts')
-{{-- Uncomment this if TinyMCE is used --}}
-{{--
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://cdn.tiny.cloud/1/d6b2sr6wvk401h8i55fuufj8wlc5pouxeasair9hg4a8zwfy/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
+  // Initial TinyMCE setup for all .tinymce fields
+  function initAllTinyMCE() {
     tinymce.init({
-        selector: 'textarea.tinymce',
-        height: 200,
-        menubar: false,
-        plugins: [
-            'advlist autolink lists link image charmap print preview anchor',
-            'searchreplace visualblocks code fullscreen',
-            'insertdatetime media table paste code help wordcount'
-        ],
-        toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help'
+      selector: 'textarea.tinymce',
+      plugins: [
+        'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
+        'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown','importword', 'exportword', 'exportpdf'
+      ],
+      toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+      tinycomments_mode: 'embedded',
+      tinycomments_author: '{{ Auth::user()->name ?? "Author" }}',
+      mergetags_list: [
+        { value: 'First.Name', title: 'First Name' },
+        { value: 'Email', title: 'Email' },
+      ],
+      ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
     });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    initAllTinyMCE();
+  });
+
+function addSubQuestion(qIdx) {
+    var container = document.getElementById('sub-questions-' + qIdx);
+    var count = container.children.length;
+    var nextChar = String.fromCharCode(97 + count); // 'a', 'b', etc.
+    var questionId = 'subq-q-' + qIdx + '-' + nextChar;
+    var answerId = 'subq-a-' + qIdx + '-' + nextChar;
+
+    var html = `
+        <div class="sub-question-block mb-2 input-group align-items-start">
+            <span class="input-group-text">${nextChar})</span>
+            <div class="flex-grow-1 me-2">
+                <textarea id="${questionId}" class="form-control tinymce mb-1" name="questions[${qIdx}][sub_questions][${nextChar}][question]" rows="2" placeholder="Sub-question"></textarea>
+                <textarea id="${answerId}" class="form-control tinymce" name="questions[${qIdx}][sub_questions][${nextChar}][answer]" rows="2" placeholder="Answer"></textarea>
+            </div>
+            <button type="button" class="btn btn-danger align-self-stretch" onclick="removeSubQuestion(this)">Remove</button>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+
+    setTimeout(function() {
+        if (tinymce.get(questionId)) tinymce.get(questionId).remove();
+        if (tinymce.get(answerId)) tinymce.get(answerId).remove();
+        tinymce.init({
+            selector: `#${questionId}, #${answerId}`,
+            plugins: [
+              'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
+              'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown','importword', 'exportword', 'exportpdf'
+            ],
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+            tinycomments_mode: 'embedded',
+            tinycomments_author: '{{ Auth::user()->name ?? "Author" }}'
+        });
+    }, 100);
+}
+
+
+  function removeSubQuestion(btn) {
+    btn.closest('.sub-question-block').remove();
+  }
 </script>
---}}
 @endpush

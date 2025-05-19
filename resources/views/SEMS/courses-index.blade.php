@@ -3,6 +3,9 @@
 @section('content')
 <div class="content container-fluid">
     <div class="page-header">
+       @section('content')
+<div class="content container-fluid">
+    <div class="page-header">
         <div class="row align-items-center">
             <div class="col">
                 <h3 class="page-title">All Courses</h3>
@@ -45,6 +48,7 @@
                         @forelse ($courses as $course)
                             @php
                                 $tos = is_array($course->tos) ? $course->tos : json_decode($course->tos, true) ?? [];
+                                $modalId = 'tosModal-' . $course->id;
                             @endphp
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
@@ -52,16 +56,11 @@
                                 <td>{{ $course->course_name }}</td>
                                 <td>
                                     @if (!empty($tos))
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                View TOS
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                @foreach ($tos as $item)
-                                                    <li class="dropdown-item">{{ $item['spec'] ?? '-' }}</li>
-                                                @endforeach
-                                            </ul>
-                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#{{ $modalId }}">
+                                            View TOS
+                                        </button>
                                     @else
                                         <span class="text-muted">No TOS</span>
                                     @endif
@@ -80,6 +79,31 @@
                                     </form>
                                 </td>
                             </tr>
+
+{{-- Modal for TOS --}}
+@if (!empty($tos))
+<div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="{{ $modalId }}Label">TOS for {{ $course->course_code }} - {{ $course->course_name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ol class="mb-0">
+          @foreach ($tos as $item)
+            <li>{{ $item['spec'] ?? '-' }}</li>
+          @endforeach
+        </ol>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+@endif
+
                         @empty
                             <tr>
                                 <td colspan="5" class="text-center text-muted">No courses found.</td>

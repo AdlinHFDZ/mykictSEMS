@@ -133,47 +133,64 @@
         </div>
 
         <!-- Questions and Vetter History -->
-        @foreach ($questions as $index => $q)
-            <div class="card mb-4">
-                <div class="card-header">
-                    <strong>Question {{ $index + 1 }}</strong>
-                </div>
-                <div class="card-body">
-                    <p><strong>Question:</strong> {!! $q['question'] ?? 'N/A' !!}</p>
-                    <p><strong>Answer:</strong> {!! $q['answer'] ?? 'N/A' !!}</p>
+@foreach ($questions as $index => $q)
+    <div class="card mb-4">
+        <div class="card-header">
+            <strong>Question {{ $index + 1 }}</strong>
+        </div>
+        <div class="card-body">
+            <p><strong>Question:</strong> {!! $q['question'] ?? 'N/A' !!}</p>
+            <p><strong>Answer:</strong> {!! $q['answer'] ?? 'N/A' !!}</p>
 
-                    <div class="mt-4">
-                        <h6 class="mb-3 text-primary d-flex justify-content-between align-items-center">
-                            📝 Vetter Review History
-                            <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#vetterLog{{ $index }}">
-                                Toggle History
-                            </button>
-                        </h6>
-                        <div class="collapse show" id="vetterLog{{ $index }}">
-                            <ul class="list-group">
-                                @if (isset($vetterComments[$index]) && is_array($vetterComments[$index]))
-                                    @foreach ($vetterComments[$index] as $log)
-                                        <li class="list-group-item">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <strong>{{ $log['name'] ?? 'Unknown Vetter' }}</strong>
-                                                    <div class="text-muted small">{{ $log['timestamp'] ?? 'No timestamp' }}</div>
-                                                </div>
-                                                <span class="badge bg-secondary">Cycle {{ $loop->iteration }}</span>
-                                            </div>
-                                            <hr class="my-2" />
-                                            <div class="fst-italic">{{ $log['comment'] ?? 'No comment provided.' }}</div>
-                                        </li>
-                                    @endforeach
-                                @else
-                                    <li class="list-group-item text-muted">No previous review history.</li>
-                                @endif
-                            </ul>
+            {{-- Sub-Questions --}}
+            @if (!empty($q['sub_questions']))
+                <div class="ms-4 mt-3">
+                    <strong>Sub-Questions:</strong>
+                    @foreach ($q['sub_questions'] as $subIdx => $subQ)
+                        <div class="mb-2">
+                            <span class="fw-bold">{{ is_numeric($subIdx) ? chr(97 + $loop->index) : $subIdx }})</span>
+                            {!! $subQ['question'] ?? '' !!}
+                            @if (!empty($subQ['answer']))
+                                <div><strong>Answer:</strong> {!! $subQ['answer'] !!}</div>
+                            @endif
                         </div>
-                    </div>
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="mt-4">
+                <h6 class="mb-3 text-primary d-flex justify-content-between align-items-center">
+                    📝 Vetter Review History
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#vetterLog{{ $index }}">
+                        Toggle History
+                    </button>
+                </h6>
+                <div class="collapse show" id="vetterLog{{ $index }}">
+                    <ul class="list-group">
+                        @if (isset($vetterComments[$index]) && is_array($vetterComments[$index]))
+                            @foreach ($vetterComments[$index] as $log)
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>{{ $log['name'] ?? 'Unknown Vetter' }}</strong>
+                                            <div class="text-muted small">{{ $log['timestamp'] ?? 'No timestamp' }}</div>
+                                        </div>
+                                        <span class="badge bg-secondary">Cycle {{ $loop->iteration }}</span>
+                                    </div>
+                                    <hr class="my-2" />
+                                    <div class="fst-italic">{{ $log['comment'] ?? 'No comment provided.' }}</div>
+                                </li>
+                            @endforeach
+                        @else
+                            <li class="list-group-item text-muted">No previous review history.</li>
+                        @endif
+                    </ul>
                 </div>
             </div>
-        @endforeach
+        </div>
+    </div>
+@endforeach
+
 
  <!-- Buttons -->
 <div class="text-center mt-4 d-flex flex-wrap justify-content-center gap-2">
