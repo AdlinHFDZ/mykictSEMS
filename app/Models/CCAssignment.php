@@ -16,15 +16,13 @@ class CCAssignment extends Model
         'user_id',
     ];
 
-    // 👉 Add this:
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function exam()
     {
-        return $this->belongsTo(Exam::class);
+        return $this->belongsTo(Exam::class, 'exam_id');
     }
 }
-

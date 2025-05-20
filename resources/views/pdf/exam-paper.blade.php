@@ -110,16 +110,35 @@
             color: #1e8e3e;
         }
 
-        .warning-bottom {
-            position: absolute;
-            left: 0;
-            bottom: 50px;
+        /* Approval/Warning block ONLY ON COVER */
+        .cover-footer-block {
+            margin-top: 90px;
             width: 100%;
             text-align: center;
+        }
+        .cover-signatures {
+            display: flex;
+            justify-content: center;
+            gap: 120px;
+            font-size: 13px;
+            margin-top: 25px;
+        }
+        .signature-box {
+            display: inline-block;
+            text-align: center;
+        }
+        .signature-title {
+            font-weight: bold;
+            text-decoration: underline;
+            font-size: 14px;
+        }
+
+        .warning-block {
             font-weight: bold;
             font-size: 12px;
             color: #aa2e00;
             letter-spacing: 0.1px;
+            margin-bottom: 14px;
         }
 
         .answer-sheet-question {
@@ -132,8 +151,20 @@
             height: 40px;
             margin-bottom: 10px;
         }
+
+        /* Page number styling */
+        .page-number {
+            position: fixed;
+            bottom: 8px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            color: #333;
+        }
     </style>
 </head>
+
 <body style="position: relative;">
 
     {{-- COVER PAGE --}}
@@ -153,7 +184,9 @@
         </tr>
         <tr>
             <td><strong>Time:</strong> {{ $exam->exam_time ?? '-' }}</td>
-            <td><strong>Date:</strong> {{ optional($exam->exam_date)->format('d/m/Y') ?? '-' }}</td>
+            <td><strong>Date:</strong>
+                {{ $exam->exam_date ? \Carbon\Carbon::parse($exam->exam_date)->format('d/m/Y') : '-' }}
+            </td>
         </tr>
         <tr>
             <td><strong>Duration:</strong> {{ $exam->duration ?? '-' }}</td>
@@ -180,9 +213,59 @@
         </div>
     @endif
 
-    <div class="warning-bottom">
-        Any form of cheating or attempt to cheat is a serious offence<br>which may lead to dismissal.
+
+    <style>
+.cover-footer-block {
+    width: 100%;
+    margin-top: 60px;
+    text-align: center;
+}
+.warning-block {
+    font-weight: bold;
+    color: #aa2e00;
+    font-size: 13px;
+    margin-bottom: 25px;
+}
+.cover-signatures {
+    display: flex;
+    justify-content: center;
+    gap: 120px;
+}
+.signature-box {
+    display: inline-block;
+    text-align: center;
+}
+.signature-title {
+    font-weight: bold;
+    text-decoration: underline;
+    font-size: 14px;
+}
+</style>
+
+  <!-- Cheating Warning and Signatures (static on cover page only) -->
+<div class="cover-footer-block">
+    <div class="warning-block">
+        Any form of cheating or attempt to cheat is a serious offence<br>
+        which may lead to dismissal.
     </div>
+    <div class="cover-signatures">
+        <div class="signature-box">
+            <span class="signature-title">PREPARED BY:</span>
+            <div style="margin-top: 15px;">
+                {{ $exam->ccAssignment && $exam->ccAssignment->user ? strtoupper($exam->ccAssignment->user->name) : 'N/A' }}<br>
+                Course Coordinator
+            </div>
+        </div>
+        <div class="signature-box">
+            <span class="signature-title">APPROVED BY:</span>
+            <div style="margin-top: 15px;">
+                {{ $exam->approvedBy && $exam->approvedBy->name ? strtoupper($exam->approvedBy->name) : 'N/A' }}<br>
+                Head of Department
+            </div>
+        </div>
+    </div>
+</div>
+
 
     <div style="page-break-after: always;"></div>
 
@@ -209,6 +292,27 @@
         <div class="answer-sheet-line"></div>
         <div class="answer-sheet-line"></div>
     @endfor
+
+   {{-- Page Number (footer, all pages except cover page) --}}
+<script type="text/php">
+    if (isset($pdf)) {
+        $font = $fontMetrics->get_font("DejaVu Sans, Arial, Helvetica, sans-serif", "normal");
+        $size = 10;
+        $pageText = "Page {PAGE_NUM} of {PAGE_COUNT}";
+        $marginLeft = 50; // match your @page margin
+        $marginRight = 50;
+        $pageWidth = 595; // A4 width in points
+        $contentWidth = $pageWidth - $marginLeft - $marginRight;
+        $textWidth = $fontMetrics->getTextWidth($pageText, $font, $size);
+
+        $x = 265;
+        $y = 820; // adjust for your footer (bottom margin + a bit up)
+
+        // Use on all pages or add condition for non-cover pages
+        $pdf->page_text($x, $y, $pageText, $font, $size, [0,0,0]);
+    }
+</script>
+
 
 </body>
 </html>

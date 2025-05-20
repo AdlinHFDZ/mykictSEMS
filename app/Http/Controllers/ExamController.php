@@ -214,35 +214,45 @@ public function submitQuestion(Request $request)
     |--------------------------------------------------------------------------
     */
 
-    public function hodDashboard(Request $request)
-    {
-        if (auth()->user()->role_id !== 3 && auth()->user()->role_id !== 1) {
-            abort(403, 'Unauthorized.');
-        }
-
-        $activeSemester = Semester::where('is_active', true)->first();
-        $semesters = Semester::all();
-        $status = $request->input('status');
-
-        $query = Exam::where('semester_id', $activeSemester->id);
-
-        if ($status) {
-            $query->where('status', $status);
-        }
-
-        $exams = (auth()->user()->role_id == 1)
-            ? $query->get()
-            : $query->where('created_by', auth()->id())->get();
-
-        $academicians = User::where('role_id', 5)->get();
-        $assignedCCIds = CCAssignment::pluck('user_id')->toArray();
-        $assignedVetterIds = VetterAssignment::pluck('user_id')->toArray();
-
-        $availableCCs = $academicians->whereNotIn('id', $assignedCCIds);
-        $availableVetters = $academicians->whereNotIn('id', $assignedVetterIds);
-
-        return view('SEMS.HOD-dashboard', compact('exams', 'academicians', 'availableCCs', 'availableVetters', 'semesters', 'activeSemester'));
+public function hodDashboard(Request $request)
+{
+    if (auth()->user()->role_id !== 3 && auth()->user()->role_id !== 1) {
+        abort(403, 'Unauthorized.');
     }
+
+    $activeSemester = Semester::where('is_active', true)->first();
+    $semesters = Semester::all();
+    $status = $request->input('status');
+
+    $query = Exam::where('semester_id', $activeSemester->id);
+
+    if ($status) {
+        $query->where('status', $status);
+    }
+
+    $exams = (auth()->user()->role_id == 1)
+        ? $query->get()
+        : $query->where('created_by', auth()->id())->get();
+
+    $academicians = User::where('role_id', 5)->get();
+    $assignedCCIds = CCAssignment::pluck('user_id')->toArray();
+    $assignedVetterIds = VetterAssignment::pluck('user_id')->toArray();
+
+    // Merge both assigned user arrays, remove duplicates
+    $assignedUserIds = array_unique(array_merge($assignedCCIds, $assignedVetterIds));
+
+    // Filter academicians not assigned as CC or Vetter anywhere
+    $availableAcademicians = $academicians->whereNotIn('id', $assignedUserIds);
+
+    return view('SEMS.HOD-dashboard', compact(
+        'exams',
+        'academicians',
+        'availableAcademicians',
+        'semesters',
+        'activeSemester'
+    ));
+}
+
 
     public function ccDashboard()
     {
@@ -455,10 +465,12 @@ public function approveExam(Request $request)
 
     // ✅ Final Approval
     $exam->status = \App\Enums\ExamStatus::APPROVED;
+    $exam->approved_by = auth()->id();   // <-- Add this line
     $exam->save();
 
     return redirect()->route('HOD.dashboard')->with('success', 'Exam approved successfully!');
 }
+
 
 
 
@@ -482,14 +494,17 @@ public function approveExam(Request $request)
     }
 
 
-    public function viewQuestion(Request $request)
+public function viewQuestion(Request $request)
 {
-    $exam = Exam::findOrFail($request->exam_id);
+    $exam = Exam::with(['ccAssignment.user', 'vetterAssignments.user', 'semester', 'createdBy'])
+        ->findOrFail($request->exam_id);
+
     $questions = json_decode($exam->questions, true) ?? [];
     $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
     $vetterComments = is_array($exam->vetter_comments) ? $exam->vetter_comments : json_decode($exam->vetter_comments, true) ?? [];
 
     return view('SEMS.view-question', compact('exam', 'questions', 'tos', 'vetterComments'));
 }
+
 
 }

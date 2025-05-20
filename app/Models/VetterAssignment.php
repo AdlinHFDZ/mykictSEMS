@@ -8,14 +8,13 @@ class VetterAssignment extends Model
 {
     protected $fillable = ['exam_id', 'user_id'];
 
-    // 👉 Add this:
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function exam()
     {
-        return $this->belongsTo(Exam::class);
+        return $this->belongsTo(Exam::class, 'exam_id');
     }
 }

@@ -22,7 +22,10 @@
 
                 {{-- Title & Status --}}
                 <div class="text-center mb-4">
-                    <h4 class="fw-bold mb-2">{{ $exam->course_name }} <small class="text-muted">({{ $exam->course_code }})</small></h4>
+                    <h4 class="fw-bold mb-2">
+                        {{ $exam->course_name }}
+                        <small class="text-muted">({{ $exam->course_code }})</small>
+                    </h4>
                     <p class="mb-1"><strong>Section:</strong> {{ $exam->section }}</p>
                     <p class="mb-1"><strong>Status:</strong>
                         <span class="badge bg-{{ $exam->status == 'vetting' ? 'warning text-dark' : 'secondary' }}">
@@ -32,59 +35,78 @@
                     <p class="mb-0"><strong>Semester:</strong> {{ $exam->semester->name ?? 'N/A' }}</p>
                 </div>
 
-                {{-- Divider --}}
                 <hr class="mb-4">
 
-
-{{-- Detail Info --}}
-<div class="row">
-    <div class="col-md-6 mb-3">
-        <label class="form-label fw-semibold"><i class="bi bi-journal-text me-1"></i> Course Name</label>
-        <input type="text" class="form-control bg-light" value="{{ $exam->course_name }}" disabled>
-    </div>
-    <div class="col-md-6 mb-3">
-        <label class="form-label fw-semibold"><i class="bi bi-code-slash me-1"></i> Course Code</label>
-        <input type="text" class="form-control bg-light" value="{{ $exam->course_code }}" disabled>
-    </div>
-    <div class="col-md-6 mb-3">
-        <label class="form-label fw-semibold"><i class="bi bi-layers me-1"></i> Section</label>
-        <input type="text" class="form-control bg-light" value="{{ $exam->section }}" disabled>
-    </div>
-    <div class="col-md-6 mb-3">
-        <label class="form-label fw-semibold"><i class="bi bi-person-badge me-1"></i> Coordinator</label>
-        <input type="text" class="form-control bg-light" value="{{ $exam->createdBy->name ?? Auth::user()->name }}" disabled>
-    </div>
-    <div class="col-md-6 mb-3">
-        <label class="form-label fw-semibold"><i class="bi bi-calendar-event me-1"></i> Semester</label>
-        <input type="text" class="form-control bg-light" value="{{ $exam->semester->name ?? 'N/A' }}" disabled>
-    </div>
-
-    {{-- Additional Exam Settings --}}
-    @if ($exam->exam_date)
-        <div class="col-md-4 mb-3">
-            <label class="form-label fw-semibold"><i class="bi bi-calendar-check me-1"></i> Exam Date</label>
-            <input type="text" class="form-control bg-light" value="{{ \Carbon\Carbon::parse($exam->exam_date)->format('d/m/Y') }}" disabled>
+                {{-- Exam Details --}}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label exam-details-label"><i class="bi bi-journal-text me-1"></i> Course Name</label>
+                        <input type="text" class="form-control exam-details-input" value="{{ $exam->course_name }}" disabled readonly>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label exam-details-label"><i class="bi bi-code-slash me-1"></i> Course Code</label>
+                        <input type="text" class="form-control exam-details-input" value="{{ $exam->course_code }}" disabled readonly>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label exam-details-label"><i class="bi bi-layers me-1"></i> Section</label>
+                        <input type="text" class="form-control exam-details-input" value="{{ $exam->section }}" disabled readonly>
+                    </div>
+                    <!-- Coordinator -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label exam-details-label"><i class="bi bi-person-badge me-1"></i> Coordinator</label>
+                        <input type="text" class="form-control exam-details-input"
+                               value="{{ $exam->ccAssignment && $exam->ccAssignment->user ? $exam->ccAssignment->user->name : 'N/A' }}"
+                               disabled readonly>
+                    </div>
+                    <!-- Vetters (comma-separated) -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label exam-details-label"><i class="bi bi-person-check me-1"></i> Vetters</label>
+                        <input
+                            type="text"
+                            class="form-control exam-details-input"
+                            style="text-align: left !important; direction: ltr; padding-left: 18px;"
+                            value="{{ $exam->vetterAssignments->count()
+                                ? $exam->vetterAssignments->pluck('user.name')->join(', ')
+                                : 'No vetters assigned.' }}"
+                            disabled
+                            readonly
+                        >
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label exam-details-label"><i class="bi bi-calendar-event me-1"></i> Semester</label>
+                        <input type="text" class="form-control exam-details-input" value="{{ $exam->semester->name ?? 'N/A' }}" disabled readonly>
+                    </div>
+                    {{-- Optional: Exam Settings --}}
+                    @if ($exam->exam_date)
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label exam-details-label"><i class="bi bi-calendar-check me-1"></i> Exam Date</label>
+                            <input type="text" class="form-control exam-details-input" value="{{ \Carbon\Carbon::parse($exam->exam_date)->format('d/m/Y') }}" disabled readonly>
+                        </div>
+                    @endif
+                    @if ($exam->exam_time)
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label exam-details-label"><i class="bi bi-clock me-1"></i> Exam Time</label>
+                            <input type="text" class="form-control exam-details-input" value="{{ $exam->exam_time }}" disabled readonly>
+                        </div>
+                    @endif
+                    @if ($exam->duration)
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label exam-details-label"><i class="bi bi-hourglass me-1"></i> Duration</label>
+                            <input type="text" class="form-control exam-details-input" value="{{ $exam->duration }}" disabled readonly>
+                        </div>
+                    @endif
+                    @if ($exam->instruction)
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label exam-details-label"><i class="bi bi-info-circle me-1"></i> Instructions</label>
+                            <textarea class="form-control exam-details-textarea" rows="3" disabled readonly>{{ $exam->instruction }}</textarea>
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
-    @endif
-    @if ($exam->exam_time)
-        <div class="col-md-4 mb-3">
-            <label class="form-label fw-semibold"><i class="bi bi-clock me-1"></i> Exam Time</label>
-            <input type="text" class="form-control bg-light" value="{{ $exam->exam_time }}" disabled>
-        </div>
-    @endif
-    @if ($exam->duration)
-        <div class="col-md-4 mb-3">
-            <label class="form-label fw-semibold"><i class="bi bi-hourglass me-1"></i> Duration</label>
-            <input type="text" class="form-control bg-light" value="{{ $exam->duration }}" disabled>
-        </div>
-    @endif
-    @if ($exam->instruction)
-        <div class="col-md-12 mb-3">
-            <label class="form-label fw-semibold"><i class="bi bi-info-circle me-1"></i> Instructions</label>
-            <textarea class="form-control bg-light" rows="3" disabled>{{ $exam->instruction }}</textarea>
-        </div>
-    @endif
+    </div>
 </div>
+
 
 
 
@@ -145,8 +167,7 @@
             </div>
         </div>
 
-        <!-- Questions -->
-<!-- Questions -->
+
 @foreach ($questions as $index => $q)
     <div class="card mb-4">
         <div class="card-header">
@@ -187,4 +208,6 @@
         </div>
     </form>
 </div>
+
+
 @endsection

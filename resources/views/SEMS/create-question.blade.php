@@ -20,48 +20,65 @@
         @csrf
         <input type="hidden" name="exam_id" value="{{ $exam->id }}">
 
-        {{-- Exam Overview Summary --}}
-        <div class="row justify-content-center mb-4">
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="text-center mb-4">
-                            <h4 class="fw-bold mb-2">{{ $exam->course_name }} <small class="text-muted">({{ $exam->course_code }})</small></h4>
-                            <p class="mb-1"><strong>Section:</strong> {{ $exam->section }}</p>
-                            <p class="mb-1"><strong>Status:</strong>
-                                <span class="badge bg-{{ $exam->status == 'vetting' ? 'warning text-dark' : 'secondary' }}">
-                                    {{ ucfirst($exam->status) }}
-                                </span>
-                            </p>
-                            <p class="mb-0"><strong>Semester:</strong> {{ $exam->semester->name ?? 'N/A' }}</p>
-                        </div>
-                        <hr class="mb-4">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold"><i class="bi bi-journal-text me-1"></i> Course Name</label>
-                                <input type="text" class="form-control bg-light" value="{{ $exam->course_name }}" disabled>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold"><i class="bi bi-code-slash me-1"></i> Course Code</label>
-                                <input type="text" class="form-control bg-light" value="{{ $exam->course_code }}" disabled>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold"><i class="bi bi-layers me-1"></i> Section</label>
-                                <input type="text" class="form-control bg-light" value="{{ $exam->section }}" disabled>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold"><i class="bi bi-person-badge me-1"></i> Coordinator</label>
-                                <input type="text" class="form-control bg-light" value="{{ $exam->createdBy->name ?? Auth::user()->name }}" disabled>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-semibold"><i class="bi bi-calendar-event me-1"></i> Semester</label>
-                                <input type="text" class="form-control bg-light" value="{{ $exam->semester->name ?? 'N/A' }}" disabled>
-                            </div>
-                        </div>
+<div class="row justify-content-center mb-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <h4 class="fw-bold mb-2">{{ $exam->course_name }} <small class="text-muted">({{ $exam->course_code }})</small></h4>
+                    <p class="mb-1"><strong>Section:</strong> {{ $exam->section }}</p>
+                    <p class="mb-1"><strong>Status:</strong>
+                        <span class="badge bg-{{ $exam->status == 'vetting' ? 'warning text-dark' : 'secondary' }}">
+                            {{ ucfirst($exam->status) }}
+                        </span>
+                    </p>
+                    <p class="mb-0"><strong>Semester:</strong> {{ $exam->semester->name ?? 'N/A' }}</p>
+                </div>
+                <hr class="mb-4">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label exam-details-label"><i class="bi bi-journal-text me-1"></i> Course Name</label>
+                        <input type="text" class="form-control exam-details-input" value="{{ $exam->course_name }}" disabled readonly>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label exam-details-label"><i class="bi bi-code-slash me-1"></i> Course Code</label>
+                        <input type="text" class="form-control exam-details-input" value="{{ $exam->course_code }}" disabled readonly>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label exam-details-label"><i class="bi bi-layers me-1"></i> Section</label>
+                        <input type="text" class="form-control exam-details-input" value="{{ $exam->section }}" disabled readonly>
+                    </div>
+                    <!-- Coordinator -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label exam-details-label"><i class="bi bi-person-badge me-1"></i> Coordinator</label>
+                        <input type="text" class="form-control exam-details-input"
+                            value="{{ $exam->ccAssignment && $exam->ccAssignment->user ? $exam->ccAssignment->user->name : 'N/A' }}"
+                            disabled readonly>
+                    </div>
+                    <!-- Vetters (comma-separated) -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label exam-details-label"><i class="bi bi-person-check me-1"></i> Vetters</label>
+                        <input
+                            type="text"
+                            class="form-control exam-details-input"
+                            style="text-align: left !important; direction: ltr; padding-left: 18px;"
+                            value="{{ $exam->vetterAssignments->count()
+                                ? $exam->vetterAssignments->pluck('user.name')->join(', ')
+                                : 'No vetters assigned.' }}"
+                            disabled
+                            readonly
+                        >
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label exam-details-label"><i class="bi bi-calendar-event me-1"></i> Semester</label>
+                        <input type="text" class="form-control exam-details-input" value="{{ $exam->semester->name ?? 'N/A' }}" disabled readonly>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
 
         {{-- TOS Table --}}
         <div class="card mb-4">
@@ -182,36 +199,52 @@
 </div>
 <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addSubQuestion({{ $i }})">+ Add Sub-question</button>
 
-                    {{-- Vetter Comments (Collapsible) --}}
-                    <div class="mt-4">
-                        <h6 class="d-flex justify-content-between align-items-center text-primary">
-                            📝 Vetter Review History
-                            <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#vetterLog{{ $i }}">
-                                Toggle History
-                            </button>
-                        </h6>
-                        <div class="collapse show" id="vetterLog{{ $i }}">
-                            <ul class="list-group">
-                                @if (isset($vetterComments[$i]) && is_array($vetterComments[$i]))
-                                    @foreach ($vetterComments[$i] as $log)
-                                        <li class="list-group-item">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <strong>{{ $log['name'] ?? 'Unknown Vetter' }}</strong>
-                                                    <div class="text-muted small">{{ $log['timestamp'] ?? 'No timestamp' }}</div>
-                                                </div>
-                                                <span class="badge bg-secondary">Cycle {{ $loop->iteration }}</span>
-                                            </div>
-                                            <hr class="my-2" />
-                                            <div class="fst-italic">{{ $log['comment'] ?? 'No comment provided.' }}</div>
-                                        </li>
-                                    @endforeach
-                                @else
-                                    <li class="list-group-item text-muted">No previous review history.</li>
-                                @endif
-                            </ul>
+<div class="mt-4">
+    <h6 class="mb-3 text-primary">Vetter Comment History</h6>
+    <div class="d-flex flex-column gap-3">
+        @if ($exam->vetterAssignments->count())
+            @foreach ($exam->vetterAssignments as $vetterAssignment)
+                @php
+                    $vetterName = $vetterAssignment->user->name ?? 'Unknown Vetter';
+                    // Find all comments for this vetter for this question index
+                    $vetterLogs = collect($vetterComments[$index] ?? [])->filter(function($log) use ($vetterName) {
+                        return isset($log['name']) && $log['name'] === $vetterName;
+                    });
+                @endphp
+                <div class="mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                             style="width: 38px; height: 38px; font-size: 18px;">
+                            {{ strtoupper(substr($vetterName, 0, 1)) }}
                         </div>
+                        <span class="fw-bold">{{ $vetterName }}</span>
                     </div>
+                    @if ($vetterLogs->count())
+                        @foreach ($vetterLogs as $cycle => $log)
+                            <div class="d-flex align-items-start shadow-sm p-3 bg-white rounded mb-2"
+                                 style="border-left: 6px solid #0d6efd;">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <span class="badge bg-secondary ms-0">Cycle {{ $loop->iteration }}</span>
+                                        </div>
+                                        <small class="text-muted">{{ $log['timestamp'] ?? 'No timestamp' }}</small>
+                                    </div>
+                                    <div class="mt-2 fst-italic" style="white-space: pre-line;">{{ $log['comment'] ?? 'No comment provided.' }}</div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="text-muted fst-italic mb-3">No comments from this vetter.</div>
+                    @endif
+                </div>
+            @endforeach
+        @else
+            <div class="text-muted fst-italic">No vetters assigned.</div>
+        @endif
+    </div>
+</div>
+
                 </div>
             </div>
         @endfor

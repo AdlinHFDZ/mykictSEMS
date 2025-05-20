@@ -157,12 +157,13 @@
                                                                 <div class="modal-body">
                                                                     <select name="user_id" class="form-select" required>
                                                                         <option value="">Select CC</option>
-                                                                        @foreach ($academicians as $user)
-                                                                            @if (!\App\Models\CCAssignment::where('user_id', $user->id)->exists())
-                                                                                <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                                                            @endif
+                                                                        @foreach ($availableAcademicians as $user)
+                                                                            <option value="{{ $user->id }}">{{ $user->name }}</option>
                                                                         @endforeach
                                                                     </select>
+                                                                    @if ($availableAcademicians->isEmpty())
+                                                                        <div class="text-danger mt-2">No available academicians.</div>
+                                                                    @endif
                                                                 </div>
                                                                 <div class="modal-footer">
                                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Back</button>
@@ -178,7 +179,7 @@
                                                     Assign Vetter
                                                 </button>
 
-                                                <!-- Vetter Modal -->
+                                                <!-- Assign Vetter Modal -->
                                                 <div class="modal fade" id="assignVetterModal{{ $exam->id }}" tabindex="-1" aria-labelledby="assignVetterModalLabel{{ $exam->id }}" aria-hidden="true">
                                                     <div class="modal-dialog">
                                                         <div class="modal-content">
@@ -192,12 +193,13 @@
                                                                 <div class="modal-body">
                                                                     <select name="user_id" class="form-select" required>
                                                                         <option value="">Select Vetter</option>
-                                                                        @foreach ($academicians as $user)
-                                                                            @if (!\App\Models\VetterAssignment::where('exam_id', $exam->id)->where('user_id', $user->id)->exists())
-                                                                                <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                                                            @endif
+                                                                        @foreach ($availableAcademicians as $user)
+                                                                            <option value="{{ $user->id }}">{{ $user->name }}</option>
                                                                         @endforeach
                                                                     </select>
+                                                                    @if ($availableAcademicians->isEmpty())
+                                                                        <div class="text-danger mt-2">No available academicians.</div>
+                                                                    @endif
                                                                 </div>
                                                                 <div class="modal-footer">
                                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Back</button>
@@ -207,7 +209,6 @@
                                                         </div>
                                                     </div>
                                                 </div>
-
                                             @elseif ($exam->status === ExamStatus::PENDING_APPROVAL->value)
                                                 <a href="{{ route('approval.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-info">View Question</a>
 
