@@ -12,9 +12,15 @@ use App\Http\Controllers\SemesterController;
 | Public Route
 |--------------------------------------------------------------------------
 */
+// Shows your welcome portal at the root URL
 Route::get('/', function () {
-    return view('auth.login');
+    return view('welcome'); // Loads resources/views/welcome.blade.php
 });
+
+// Shows the login page at /login
+Route::get('/login', function () {
+    return view('auth.login');
+})->name('login');
 
 /*
 |--------------------------------------------------------------------------

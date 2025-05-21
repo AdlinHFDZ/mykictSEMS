@@ -16,17 +16,11 @@
             </li>
             <li class="breadcrumb-item active" style="color: #ffffff;">welcome</li>
         </ul>
-        <!-- Buttons -->
+        <!-- SEMS Button Only -->
         <div class="mt-4">
             <a href="{{ url('SEMS-dashboard') }}" class="btn btn-primary btn-lg shadow" style="font-size: 1.5rem; padding: 0.8rem 2.5rem; border-radius: 50px;">
                 SMART EXAMINATION MANAGEMENT SYSTEM
             </a>
-        </div>
-        <div class="mt-4">
-            <a href="{{ url('mainSSP-welcome') }}" class="btn btn-primary btn-lg shadow" style="font-size: 1.5rem; padding: 0.8rem 2.5rem; border-radius: 50px;">
-                SMART STUDY PLANNER
-            </a>
-        </div>
         </div>
     </div>
 </div>

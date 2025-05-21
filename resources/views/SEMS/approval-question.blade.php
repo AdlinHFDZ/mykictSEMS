@@ -111,8 +111,6 @@
     </div>
 </div>
 
-
-
         @php
             $questions = json_decode($exam->questions, true) ?? [];
             $vetterComments = is_array($exam->vetter_comments) ? $exam->vetter_comments : json_decode($exam->vetter_comments, true) ?? [];
@@ -162,6 +160,7 @@
         </div>
         <div class="card-body">
             <p><strong>Question:</strong> {!! $q['question'] ?? 'N/A' !!}</p>
+            <p><strong>Mark:</strong> {{ $q['mark'] ?? '-' }}</p>
             <p><strong>Answer:</strong> {!! $q['answer'] ?? 'N/A' !!}</p>
 
             {{-- Sub-Questions --}}
@@ -172,6 +171,7 @@
                         <div class="mb-2">
                             <span class="fw-bold">{{ is_numeric($subIdx) ? chr(97 + $loop->index) : $subIdx }})</span>
                             {!! $subQ['question'] ?? '' !!}
+                            <span class="ms-2"><strong>Mark:</strong> {{ $subQ['mark'] ?? '-' }}</span>
                             @if (!empty($subQ['answer']))
                                 <div><strong>Answer:</strong> {!! $subQ['answer'] !!}</div>
                             @endif

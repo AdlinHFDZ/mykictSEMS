@@ -150,6 +150,7 @@
             </div>
             <div class="card-body">
                 <p><strong>Question:</strong> {!! $q['question'] ?? 'N/A' !!}</p>
+                <p><strong>Mark:</strong> {{ $q['mark'] ?? '-' }}</p>
                 <p><strong>Answer:</strong> {!! $q['answer'] ?? 'N/A' !!}</p>
 
                 {{-- Sub-Questions --}}
@@ -160,6 +161,7 @@
                             <div class="mb-2">
                                 <span class="fw-bold">{{ is_numeric($subIdx) ? chr(97 + $loop->index) : $subIdx }})</span>
                                 {!! $subQ['question'] ?? '' !!}
+                                <span class="ms-2"><strong>Mark:</strong> {{ $subQ['mark'] ?? '-' }}</span>
                                 @if (!empty($subQ['answer']))
                                     <div><strong>Answer:</strong> {!! $subQ['answer'] !!}</div>
                                 @endif
@@ -168,51 +170,50 @@
                     </div>
                 @endif
 
-<div class="mt-4">
-    <h6 class="mb-3 text-primary">Vetter Comment History</h6>
-    <div class="d-flex flex-column gap-3">
-        @if ($exam->vetterAssignments->count())
-            @foreach ($exam->vetterAssignments as $vetterAssignment)
-                @php
-                    $vetterName = $vetterAssignment->user->name ?? 'Unknown Vetter';
-                    // Find all comments for this vetter for this question index
-                    $vetterLogs = collect($vetterComments[$index] ?? [])->filter(function($log) use ($vetterName) {
-                        return isset($log['name']) && $log['name'] === $vetterName;
-                    });
-                @endphp
-                <div class="mb-3">
-                    <div class="d-flex align-items-center mb-2">
-                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
-                             style="width: 38px; height: 38px; font-size: 18px;">
-                            {{ strtoupper(substr($vetterName, 0, 1)) }}
-                        </div>
-                        <span class="fw-bold">{{ $vetterName }}</span>
-                    </div>
-                    @if ($vetterLogs->count())
-                        @foreach ($vetterLogs as $cycle => $log)
-                            <div class="d-flex align-items-start shadow-sm p-3 bg-white rounded mb-2"
-                                 style="border-left: 6px solid #0d6efd;">
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <span class="badge bg-secondary ms-0">Cycle {{ $loop->iteration }}</span>
+                <div class="mt-4">
+                    <h6 class="mb-3 text-primary">Vetter Comment History</h6>
+                    <div class="d-flex flex-column gap-3">
+                        @if ($exam->vetterAssignments->count())
+                            @foreach ($exam->vetterAssignments as $vetterAssignment)
+                                @php
+                                    $vetterName = $vetterAssignment->user->name ?? 'Unknown Vetter';
+                                    $vetterLogs = collect($vetterComments[$index] ?? [])->filter(function($log) use ($vetterName) {
+                                        return isset($log['name']) && $log['name'] === $vetterName;
+                                    });
+                                @endphp
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                             style="width: 38px; height: 38px; font-size: 18px;">
+                                            {{ strtoupper(substr($vetterName, 0, 1)) }}
                                         </div>
-                                        <small class="text-muted">{{ $log['timestamp'] ?? 'No timestamp' }}</small>
+                                        <span class="fw-bold">{{ $vetterName }}</span>
                                     </div>
-                                    <div class="mt-2 fst-italic" style="white-space: pre-line;">{{ $log['comment'] ?? 'No comment provided.' }}</div>
+                                    @if ($vetterLogs->count())
+                                        @foreach ($vetterLogs as $cycle => $log)
+                                            <div class="d-flex align-items-start shadow-sm p-3 bg-white rounded mb-2"
+                                                 style="border-left: 6px solid #0d6efd;">
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex justify-content-between">
+                                                        <div>
+                                                            <span class="badge bg-secondary ms-0">Cycle {{ $loop->iteration }}</span>
+                                                        </div>
+                                                        <small class="text-muted">{{ $log['timestamp'] ?? 'No timestamp' }}</small>
+                                                    </div>
+                                                    <div class="mt-2 fst-italic" style="white-space: pre-line;">{{ $log['comment'] ?? 'No comment provided.' }}</div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="text-muted fst-italic mb-3">No comments from this vetter.</div>
+                                    @endif
                                 </div>
-                            </div>
-                        @endforeach
-                    @else
-                        <div class="text-muted fst-italic mb-3">No comments from this vetter.</div>
-                    @endif
+                            @endforeach
+                        @else
+                            <div class="text-muted fst-italic">No vetters assigned.</div>
+                        @endif
+                    </div>
                 </div>
-            @endforeach
-        @else
-            <div class="text-muted fst-italic">No vetters assigned.</div>
-        @endif
-    </div>
-</div>
 
             </div>
         </div>
