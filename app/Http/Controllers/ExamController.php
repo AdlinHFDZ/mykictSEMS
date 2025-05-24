@@ -506,5 +506,62 @@ public function viewQuestion(Request $request)
     return view('SEMS.view-question', compact('exam', 'questions', 'tos', 'vetterComments'));
 }
 
+public function checkSimilarity(Request $request)
+{
+    $request->validate([
+        'question' => 'required|string',
+        'exam_id'  => 'required|integer',
+    ]);
+    $question = $request->input('question');
+    $currentExamId = $request->input('exam_id');
+
+    // Fetch all past exams (excluding current)
+    $pastExams = \App\Models\Exam::where('id', '!=', $currentExamId)
+        ->whereNotNull('questions')
+        ->get();
+
+    $bestMatch = null;
+    $bestScore = 0;
+    $bestExam = null;
+
+    foreach ($pastExams as $exam) {
+        // Decode questions as array
+        $questions = is_array($exam->questions) ? $exam->questions : json_decode($exam->questions, true) ?? [];
+        foreach ($questions as $q) {
+            // Main question
+            if (!empty($q['question'])) {
+                similar_text(strip_tags($question), strip_tags($q['question']), $percent);
+                if ($percent > $bestScore) {
+                    $bestScore = $percent;
+                    $bestMatch = $q['question'];
+                    $bestExam = $exam;
+                }
+            }
+            // Sub-questions
+            if (!empty($q['sub_questions']) && is_array($q['sub_questions'])) {
+                foreach ($q['sub_questions'] as $sub) {
+                    if (!empty($sub['question'])) {
+                        similar_text(strip_tags($question), strip_tags($sub['question']), $percent);
+                        if ($percent > $bestScore) {
+                            $bestScore = $percent;
+                            $bestMatch = $sub['question'];
+                            $bestExam = $exam;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return response()->json([
+        'best_match' => $bestMatch,
+        'score'      => round($bestScore, 1),
+        'exam'       => $bestExam ? [
+            'course_name' => $bestExam->course_name ?? '',
+            'section'     => $bestExam->section ?? '',
+            'semester'    => optional($bestExam->semester)->name ?? '',
+        ] : null,
+    ]);
+}
 
 }

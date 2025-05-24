@@ -165,7 +165,22 @@
                     <div class="form-group row">
                         <label class="col-form-label col-md-2">Question</label>
                         <div class="col-md-10">
-                            <textarea class="tinymce form-control" name="questions[{{ $i }}][question]">{{ $questions[$i]['question'] ?? '' }}</textarea>
+                            <textarea class="tinymce form-control" id="question-{{ $i }}" name="questions[{{ $i }}][question]">{{ $questions[$i]['question'] ?? '' }}</textarea>
+<div class="dropdown mt-2">
+  <button class="btn btn-outline-dark dropdown-toggle btn-sm" type="button" id="semsAiDropdown-{{ $i }}" data-bs-toggle="dropdown" aria-expanded="false">
+    SEMS AI
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="semsAiDropdown-{{ $i }}">
+    <li><a class="dropdown-item ask-ai-btn" href="#" data-target="question-{{ $i }}">Ask AI for Suggestion</a></li>
+    <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="question-{{ $i }}">Improve Clarity</a></li>
+    <li><a class="dropdown-item answer-ai-btn" href="#" data-target="question-{{ $i }}">Generate Answer</a></li>
+    <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="question-{{ $i }}">Check Similarity</a></li>
+  </ul>
+</div>
+
+
+
+
                         </div>
                     </div>
                     <div class="form-group row mt-2">
@@ -182,32 +197,49 @@
                         </div>
                     </div>
 
-                    {{-- Sub-Questions --}}
-                    <hr>
-                    <h6>Sub-Questions</h6>
-                    <div id="sub-questions-{{ $i }}">
-                        @php
-                            $subQuestions = $questions[$i]['sub_questions'] ?? [];
-                        @endphp
-                        @foreach ($subQuestions as $subIndex => $subQ)
-                            <div class="sub-question-block mb-2 input-group align-items-start">
-                                <span class="input-group-text">{{ is_numeric($subIndex) ? chr(97 + $loop->index) : $subIndex }})</span>
-                                <div class="flex-grow-1 me-2">
-                                    <textarea class="form-control tinymce mb-1"
-                                        name="questions[{{ $i }}][sub_questions][{{ is_numeric($subIndex) ? chr(97 + $subIndex) : $subIndex }}][question]"
-                                        rows="2" placeholder="Sub-question">{!! $subQ['question'] ?? '' !!}</textarea>
-                                    <input type="number" class="form-control mb-1"
-                                        name="questions[{{ $i }}][sub_questions][{{ is_numeric($subIndex) ? chr(97 + $subIndex) : $subIndex }}][mark]"
-                                        value="{{ $subQ['mark'] ?? '' }}" placeholder="Mark" min="0" style="max-width: 120px;">
-                                    <textarea class="form-control tinymce"
-                                        name="questions[{{ $i }}][sub_questions][{{ is_numeric($subIndex) ? chr(97 + $subIndex) : $subIndex }}][answer]"
-                                        rows="2" placeholder="Answer">{!! $subQ['answer'] ?? '' !!}</textarea>
-                                </div>
-                                <button type="button" class="btn btn-danger align-middle-self-stretch" onclick="removeSubQuestion(this)">Remove</button>
-                            </div>
-                        @endforeach
-                    </div>
-                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addSubQuestion({{ $i }})">+ Add Sub-question</button>
+{{-- Sub-Questions --}}
+<hr>
+<h6>Sub-Questions</h6>
+<div id="sub-questions-{{ $i }}">
+    @php
+        $subQuestions = $questions[$i]['sub_questions'] ?? [];
+    @endphp
+    @foreach ($subQuestions as $subIndex => $subQ)
+        @php $subLabel = is_numeric($subIndex) ? chr(97 + $loop->index) : $subIndex; @endphp
+        <div class="sub-question-block mb-3 input-group align-items-start">
+            <span class="input-group-text">{{ $subLabel }})</span>
+            <div class="flex-grow-1 me-2">
+                <textarea class="form-control tinymce mb-2" id="sub-q-{{ $i }}-{{ $subLabel }}"
+                    name="questions[{{ $i }}][sub_questions][{{ $subLabel }}][question]"
+                    rows="2" placeholder="Sub-question">{!! $subQ['question'] ?? '' !!}</textarea>
+
+                <div class="dropdown mb-2">
+                    <button class="btn btn-outline-dark dropdown-toggle btn-sm" type="button"
+                        id="subSemsAiDropdown-{{ $i }}-{{ $subLabel }}"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        SEMS AI
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="subSemsAiDropdown-{{ $i }}-{{ $subLabel }}">
+                        <li><a class="dropdown-item ask-ai-btn" href="#" data-target="sub-q-{{ $i }}-{{ $subLabel }}">Ask AI for Suggestion</a></li>
+                        <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="sub-q-{{ $i }}-{{ $subLabel }}">Improve Clarity</a></li>
+                        <li><a class="dropdown-item answer-ai-btn" href="#" data-target="sub-q-{{ $i }}-{{ $subLabel }}">Generate Answer</a></li>
+                        <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="sub-q-{{ $i }}-{{ $subLabel }}">Check Similarity</a></li>
+                    </ul>
+                </div>
+
+                <input type="number" class="form-control mb-2"
+                    name="questions[{{ $i }}][sub_questions][{{ $subLabel }}][mark]"
+                    value="{{ $subQ['mark'] ?? '' }}" placeholder="Mark" min="0" style="max-width: 120px;">
+                <textarea class="form-control tinymce"
+                    name="questions[{{ $i }}][sub_questions][{{ $subLabel }}][answer]"
+                    rows="2" placeholder="Answer">{!! $subQ['answer'] ?? '' !!}</textarea>
+            </div>
+            <button type="button" class="btn btn-danger align-middle-self-stretch" onclick="removeSubQuestion(this)">Remove</button>
+        </div>
+    @endforeach
+</div>
+<button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addSubQuestion({{ $i }})">+ Add Sub-question</button>
+
 
                     {{-- Vetter Comment History for this question --}}
                     <div class="mt-4">
@@ -266,72 +298,223 @@
         </div>
     </form>
 </div>
-@endsection
 
+
+@endsection
 @push('scripts')
 <script src="https://cdn.tiny.cloud/1/d6b2sr6wvk401h8i55fuufj8wlc5pouxeasair9hg4a8zwfy/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
-<script>
-  // Initial TinyMCE setup for all .tinymce fields
-  function initAllTinyMCE() {
-    tinymce.init({
-      selector: 'textarea.tinymce',
-      plugins: [
-        'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
-        'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown','importword', 'exportword', 'exportpdf'
-      ],
-      toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-      tinycomments_mode: 'embedded',
-      tinycomments_author: '{{ Auth::user()->name ?? "Author" }}',
-      mergetags_list: [
-        { value: 'First.Name', title: 'First Name' },
-        { value: 'Email', title: 'Email' },
-      ],
-      ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
-    });
-  }
 
-  document.addEventListener('DOMContentLoaded', function () {
-    initAllTinyMCE();
+<script>
+let lastEditorId = null;
+let lastAISuggestion = '';
+
+function initAllTinyMCE() {
+  document.querySelectorAll('textarea.tinymce').forEach((el) => {
+    if (tinymce.get(el.id)) {
+      tinymce.get(el.id).remove();
+    }
   });
 
-  function addSubQuestion(qIdx) {
-    var container = document.getElementById('sub-questions-' + qIdx);
-    var count = container.children.length;
-    var nextChar = String.fromCharCode(97 + count); // 'a', 'b', etc.
-    var questionId = 'subq-q-' + qIdx + '-' + nextChar;
-    var answerId = 'subq-a-' + qIdx + '-' + nextChar;
+  tinymce.init({
+    selector: 'textarea.tinymce',
+    plugins: [
+      'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace',
+      'table', 'visualblocks', 'wordcount', 'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed',
+      'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage',
+      'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect',
+      'typography', 'inlinecss', 'markdown','importword', 'exportword', 'exportpdf'
+    ],
+    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
+    tinycomments_mode: 'embedded',
+    tinycomments_author: '{{ Auth::user()->name ?? "Author" }}',
+    mergetags_list: [{ value: 'First.Name', title: 'First Name' }, { value: 'Email', title: 'Email' }],
+    ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
+  });
+}
 
-    var html = `
-        <div class="sub-question-block mb-2 input-group align-items-start">
-            <span class="input-group-text">${nextChar})</span>
-            <div class="flex-grow-1 me-2">
-                <textarea id="${questionId}" class="form-control tinymce mb-1" name="questions[${qIdx}][sub_questions][${nextChar}][question]" rows="2" placeholder="Sub-question"></textarea>
-                <input type="number" class="form-control mb-1" name="questions[${qIdx}][sub_questions][${nextChar}][mark]" placeholder="Mark" min="0" style="max-width: 120px;">
-                <textarea id="${answerId}" class="form-control tinymce" name="questions[${qIdx}][sub_questions][${nextChar}][answer]" rows="2" placeholder="Answer"></textarea>
-            </div>
-            <button type="button" class="btn btn-danger align-self-stretch" onclick="removeSubQuestion(this)">Remove</button>
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', html);
+function attachAIListeners() {
+  document.body.addEventListener('click', function (e) {
+    if (e.target.classList.contains('ask-ai-btn')) {
+      e.preventDefault();
+      runAI(e.target, 'question');
+    }
+    if (e.target.classList.contains('clarify-ai-btn')) {
+      e.preventDefault();
+      runAI(e.target, 'clarify');
+    }
+    if (e.target.classList.contains('answer-ai-btn')) {
+      e.preventDefault();
+      runAI(e.target, 'answer');
+    }
+    if (e.target.classList.contains('similarity-ai-btn')) {
+      e.preventDefault();
+      runSimilarityCheck(e.target);
+    }
+  });
+}
 
-    setTimeout(function() {
-        if (tinymce.get(questionId)) tinymce.get(questionId).remove();
-        if (tinymce.get(answerId)) tinymce.get(answerId).remove();
-        tinymce.init({
-            selector: `#${questionId}, #${answerId}`,
-            plugins: [
-              'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'image', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
-              'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'editimage', 'advtemplate', 'ai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown','importword', 'exportword', 'exportpdf'
-            ],
-            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-            tinycomments_mode: 'embedded',
-            tinycomments_author: '{{ Auth::user()->name ?? "Author" }}'
-        });
-    }, 100);
+async function runAI(button, type) {
+  const targetId = button.getAttribute('data-target');
+  const editor = tinymce.get(targetId);
+  if (!editor) return alert('Editor not found.');
+
+  const content = editor.getContent({ format: 'text' });
+  if (!content.trim()) return alert('Please enter some content.');
+
+  let prompt = content;
+  if (type === 'clarify') {
+    prompt = `Rewrite the following exam question using clear, formal, academic English:\n\n"${content}"`;
+  } else if (type === 'answer') {
+    prompt = `Provide a clear and concise model answer for the following exam question:\n\n"${content}"`;
   }
 
-  function removeSubQuestion(btn) {
-    btn.closest('.sub-question-block').remove();
+  button.innerText = 'Processing...';
+  button.disabled = true;
+
+  try {
+    const res = await fetch('http://127.0.0.1:11434/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'llama3', prompt: prompt, stream: false })
+    });
+    const data = await res.json();
+
+    lastEditorId = targetId;
+    lastAISuggestion = data.response;
+    document.getElementById('aiModalBody').innerText = data.response;
+    new bootstrap.Modal(document.getElementById('aiModal')).show();
+  } catch (err) {
+    alert('❌ AI Server Error: ' + err.message);
   }
+
+  button.innerText = type === 'clarify' ? 'Clarify' : type === 'answer' ? 'Answer' : 'Ask AI';
+  button.disabled = false;
+}
+
+async function runSimilarityCheck(button) {
+  const targetId = button.getAttribute('data-target');
+  const editor = tinymce.get(targetId);
+  if (!editor) return alert('Editor not found.');
+
+  const content = editor.getContent({ format: 'text' });
+  if (!content.trim()) return alert('Please enter a question to check.');
+
+  button.innerText = 'Checking...';
+  button.disabled = true;
+
+  try {
+    const examId = document.querySelector('input[name="exam_id"]').value;
+    const res = await fetch("{{ route('exam.check-similarity') }}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": '{{ csrf_token() }}',
+      },
+      body: JSON.stringify({
+        question: content,
+        exam_id: examId,
+      }),
+    });
+    const data = await res.json();
+    let msg = '';
+    if (data.best_match) {
+      msg = `Most similar past question (${data.score}% match):\n\n"${data.best_match}"\n\n`;
+      if (data.exam) {
+        msg += `Course: ${data.exam.course_name}\nSection: ${data.exam.section}\nSemester: ${data.exam.semester}`;
+      }
+    } else {
+      msg = "No similar question found in past exams.";
+    }
+    document.getElementById('aiModalBody').innerText = msg;
+    new bootstrap.Modal(document.getElementById('aiModal')).show();
+  } catch (err) {
+    alert("❌ Error: " + err.message);
+  }
+  button.innerText = 'Check Similarity';
+  button.disabled = false;
+}
+
+function copyAISuggestion() {
+  navigator.clipboard.writeText(lastAISuggestion).then(() => alert('Copied to clipboard.'));
+}
+
+function insertAISuggestion() {
+  if (lastEditorId && tinymce.get(lastEditorId)) {
+    tinymce.get(lastEditorId).setContent(lastAISuggestion);
+    bootstrap.Modal.getInstance(document.getElementById('aiModal')).hide();
+  } else {
+    alert('Editor not found.');
+  }
+}
+
+function addSubQuestion(questionIndex) {
+  const subQuestionsContainer = document.getElementById(`sub-questions-${questionIndex}`);
+  const subIndex = subQuestionsContainer.querySelectorAll('.sub-question-block').length;
+  const subLabel = String.fromCharCode(97 + subIndex);
+  const uniqueId = `sub-q-${questionIndex}-${subLabel}-${Date.now()}`;
+
+  const subBlock = document.createElement('div');
+  subBlock.className = 'sub-question-block mb-2 input-group align-items-start';
+  subBlock.innerHTML = `
+    <span class="input-group-text">${subLabel})</span>
+    <div class="flex-grow-1 me-2">
+      <textarea class="form-control tinymce mb-1" id="${uniqueId}"
+        name="questions[${questionIndex}][sub_questions][${subLabel}][question]"
+        rows="2" placeholder="Sub-question"></textarea>
+      <div class="dropdown my-1">
+        <button class="btn btn-sm btn-outline-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          SEMS AI
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item ask-ai-btn" href="#" data-target="${uniqueId}">Ask AI for Suggestion</a></li>
+          <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="${uniqueId}">Improve Clarity</a></li>
+          <li><a class="dropdown-item answer-ai-btn" href="#" data-target="${uniqueId}">Generate Answer</a></li>
+          <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="${uniqueId}">Check Similarity</a></li>
+        </ul>
+      </div>
+      <input type="number" class="form-control mb-1"
+        name="questions[${questionIndex}][sub_questions][${subLabel}][mark]"
+        placeholder="Mark" min="0" style="max-width: 120px;">
+      <textarea class="form-control tinymce"
+        name="questions[${questionIndex}][sub_questions][${subLabel}][answer]"
+        rows="2" placeholder="Answer"></textarea>
+    </div>
+    <button type="button" class="btn btn-danger align-middle-self-stretch" onclick="removeSubQuestion(this)">Remove</button>
+  `;
+
+  subQuestionsContainer.appendChild(subBlock);
+  initAllTinyMCE();
+}
+
+function removeSubQuestion(button) {
+  const block = button.closest('.sub-question-block');
+  if (block) block.remove();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  initAllTinyMCE();
+  attachAIListeners();
+});
 </script>
+
+<!-- AI Modal -->
+<div class="modal fade" id="aiModal" tabindex="-1" aria-labelledby="aiModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="aiModalLabel">AI Suggestion</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="aiModalBody" style="white-space: pre-wrap; font-size: 14px; max-height: 400px; overflow-y: auto;">
+        Loading...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" onclick="copyAISuggestion()">📋 Copy</button>
+        <button type="button" class="btn btn-success" onclick="insertAISuggestion()">⬇ Insert into Editor</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 @endpush
+

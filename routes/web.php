@@ -118,6 +118,16 @@ Route::middleware([
 });
 
 
+/*
+|--------------------------------------------------------------------------
+| AI ROUTING
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/ask-ai', [App\Http\Controllers\AIController::class, 'ask']);
+Route::post('/exam/check-similarity', [ExamController::class, 'checkSimilarity'])->name('exam.check-similarity');
+
+
 
 /*
 |--------------------------------------------------------------------------
