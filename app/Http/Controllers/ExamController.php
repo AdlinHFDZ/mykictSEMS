@@ -350,7 +350,7 @@ public function hodDashboard(Request $request)
 
     $exam = Exam::findOrFail($validated['exam_id']);
 
-    // Decode original data
+    // Update TOS vetter marks
     $originalTos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
     $submittedTos = $validated['tos'] ?? [];
 
@@ -360,23 +360,23 @@ public function hodDashboard(Request $request)
 
     $exam->tos = $originalTos;
 
-    // Handle vetter comments
+    // Save comments
     $newComments = $validated['comments'] ?? [];
+    $existing = is_array($exam->vetter_comments) ? $exam->vetter_comments : json_decode($exam->vetter_comments, true) ?? [];
 
-    // Get existing comment history (array of arrays)
-    $existingHistory = json_decode($exam->vetter_comments, true) ?? [];
-
-    // Append new structured logs
-    foreach ($newComments as $index => $commentText) {
-        $existingHistory[$index][] = [
-            'name' => auth()->user()->name,
-            'timestamp' => now()->toDateTimeString(),
-            'comment' => $commentText,
-        ];
+    foreach ($newComments as $index => $text) {
+        if (trim($text)) {
+            $existing[$index][] = [
+                'user_id' => auth()->id(),
+                'name' => auth()->user()->name,
+                'timestamp' => now()->toDateTimeString(),
+                'comment' => $text,
+            ];
+        }
     }
 
-    $exam->vetter_comments = $existingHistory;
-    $exam->status = ExamStatus::VETTED;
+    $exam->vetter_comments = $existing;
+    $exam->status = \App\Enums\ExamStatus::VETTED;
     $exam->save();
 
     return redirect()->route('vetters.dashboard')->with('success', 'Review submitted successfully!');
