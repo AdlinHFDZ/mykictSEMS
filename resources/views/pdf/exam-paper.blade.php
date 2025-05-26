@@ -17,23 +17,79 @@
         h2 { font-size: 20px; margin-bottom: 5px; letter-spacing: 1px; }
         h3 { font-size: 15px; margin-bottom: 2px; letter-spacing: 0.2px; }
         h4 { font-size: 13px; margin-bottom: 2px; letter-spacing: 0.1px; }
-        .exam-info-table { margin: 18px auto 16px auto; width: 70%; border: none; font-size: 15px; }
-        .exam-info-table td { border: none; padding: 4px 8px 2px 0; text-align: left; vertical-align: top; }
-        .info-highlight { font-size: 15px; font-weight: bold; text-align: center; margin: 10px 0; }
-        .instructions { text-align: center; font-style: italic; margin: 30px 0 10px 0; }
-        .section-title { text-align: center; font-weight: bold; font-size: 16px; margin-top: 20px; margin-bottom: 45px; letter-spacing: 1px; text-transform: uppercase; }
-        .cover-footer-block { margin-top: 90px; width: 100%; text-align: center; }
-        .warning-block { font-weight: bold; font-size: 12px; color: #aa2e00; letter-spacing: 0.1px; margin-bottom: 14px; }
-        .cover-signatures { display: flex; justify-content: center; gap: 120px; font-size: 13px; margin-top: 25px; }
-        .signature-box { display: inline-block; text-align: center; }
-        .signature-title { font-weight: bold; text-decoration: underline; font-size: 14px; }
-        .answer-sheet-question { font-weight: bold; margin-bottom: 3px; }
-        .answer-sheet-line { border-bottom: 1px solid #222; height: 40px; margin-bottom: 10px; }
-        .page-number { position: fixed; bottom: 8px; left: 0; width: 100%; text-align: center; font-size: 12px; color: #333; }
+
+        .kulliyyah-box {
+            border: 2px solid black;
+            padding: 4px;
+            font-weight: bold;
+            text-align: center;
+            margin: 12px auto 15px auto;
+            font-size: 13px;
+            width: 100%;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        .info-table td {
+            border: 1px solid black;
+            padding: 6px;
+            vertical-align: top;
+        }
+        .info-table td strong {
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        .instructions, .warning-block {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .instructions u {
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        .instructions p {
+            margin: 3px 0;
+        }
+
+        .warning-block {
+            font-weight: bold;
+            font-size: 12px;
+            color: #aa2e00;
+            margin: 30px auto 10px auto;
+            max-width: 90%;
+        }
+
+        .warning-block .note {
+            color: red;
+            font-style: italic;
+            font-weight: normal;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 40px 0 20px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .question {
+            margin-bottom: 28px;
+        }
+
+        .question p {
+            margin: 4px 0;
+        }
     </style>
 </head>
-
-<body style="position: relative;">
+<body>
 
 @php
     function strip_leading_blocks($str) {
@@ -41,128 +97,132 @@
     }
 @endphp
 
-    {{-- COVER PAGE --}}
+{{-- COVER PAGE --}}
+<div style="page-break-inside: avoid;">
     <div class="cover-logo">
         <img src="{{ public_path('assets/img/iium-logo-exam.png') }}">
     </div>
+
     <h2>INTERNATIONAL ISLAMIC UNIVERSITY MALAYSIA</h2>
-    <h3>END OF SEMESTER EXAMINATION</h3>
+    <h3>END-OF-SEMESTER EXAMINATION</h3>
     <h4>SEMESTER {{ $exam->semester->name ?? 'N/A' }}</h4>
-    <h4>KULLIYYAH OF INFORMATION AND COMMUNICATION TECHNOLOGY</h4>
-    <table class="exam-info-table">
-        <tr><td><strong>Programme:</strong> ICT</td><td><strong>Level of Study:</strong> UG</td></tr>
+
+    <div class="kulliyyah-box">KULLIYYAH OF INFORMATION AND COMMUNICATION TECHNOLOGY</div>
+
+    <table class="info-table">
         <tr>
-            <td><strong>Time:</strong> {{ $exam->exam_time ?? '-' }}</td>
-            <td><strong>Date:</strong> {{ $exam->exam_date ? \Carbon\Carbon::parse($exam->exam_date)->format('d/m/Y') : '-' }}</td>
+            <td><strong>Programme</strong> : {{ $exam->programme ?? 'BIT/BCS' }}</td>
+            <td><strong>Level of Stud</strong> : {{ $exam->level ?? 'UNDERGRADUATE' }}</td>
         </tr>
-        <tr><td><strong>Duration:</strong> {{ $exam->duration ?? '-' }}</td><td></td></tr>
-        <tr><td><strong>Course Code:</strong> {{ $exam->course_code }}</td><td><strong>Section(s):</strong> {{ $exam->section }}</td></tr>
-        <tr><td><strong>Course Title:</strong> {{ $exam->course_name }}</td><td></td></tr>
+        <tr>
+            <td><strong>Time</strong> : {{ $exam->exam_time ?? '-' }}</td>
+            <td><strong>Date</strong> : {{ $exam->exam_date ? \Carbon\Carbon::parse($exam->exam_date)->format('d F Y') : '-' }}</td>
+        </tr>
+        <tr>
+            <td><strong>Duration</strong> : {{ $exam->duration ?? '-' }}</td>
+            <td><strong>Section(s)</strong> : {{ $exam->section ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td><strong>Course Code</strong> : {{ $exam->course_code ?? '-' }}</td>
+            <td><strong>Total Page(s)</strong> : {{ $totalPages }} pages</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>Course Title</strong> : {{ $exam->course_name ?? '-' }}</td>
+        </tr>
     </table>
-    <div class="info-highlight">
-        This Question Paper Contains {{ $questionCount }} Question{{ $questionCount > 1 ? 's' : '' }}.
-    </div>
-    @if (!empty($exam->instruction))
-        <div class="instructions">
-            <u>INSTRUCTION(S) TO CANDIDATES</u><br>
-            {!! nl2br(e($exam->instruction)) !!}
-        </div>
-    @endif
 
-    <div class="cover-footer-block">
-        <div class="warning-block">
-            Any form of cheating or attempt to cheat is a serious offence<br>
-            which may lead to dismissal.
-        </div>
-        <div class="cover-signatures">
-            <div class="signature-box">
-                <span class="signature-title">PREPARED BY:</span>
-                <div style="margin-top: 15px;">
-                    {{ $exam->ccAssignment && $exam->ccAssignment->user ? strtoupper($exam->ccAssignment->user->name) : 'N/A' }}<br>
-                    Course Coordinator
-                </div>
-            </div>
-            <div class="signature-box">
-                <span class="signature-title">APPROVED BY:</span>
-                <div style="margin-top: 15px;">
-                    {{ $exam->approvedBy && $exam->approvedBy->name ? strtoupper($exam->approvedBy->name) : 'N/A' }}<br>
-                    Head of Department
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="instructions" style="margin-top: 30px; font-size: 13px;">
+        <table style="margin: 0 auto; border-collapse: collapse; width: 90%; text-align: center;">
+            <tr>
+                <td colspan="2" style="font-weight: bold; text-decoration: underline; padding-bottom: 5px;">
+                    INSTRUCTIONS TO CANDIDATES
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="font-weight: bold; padding: 5px 0;">
+                    Please refrain from opening the question paper until instructed to do so.
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="padding-bottom: 5px;">
+                    This question paper consists of {{ $totalPages }} pages, excluding the cover page.
+                </td>
+            </tr>
 
-    <div style="page-break-after: always;"></div>
-
-    {{-- QUESTIONS SECTION --}}
-    <div class="section-title">Exam Questions</div>
-    <table style="width: 100%; border-collapse: collapse;">
-        <tbody>
-        @foreach ($questions as $index => $q)
-            @if (!empty($q['question']))
-                <!-- Main Question Row: number + question + mark -->
+            @if (!empty($exam->instruction))
                 <tr>
-                    <td style="width: 2%; font-weight: bold; vertical-align: top;">
-                        {{ $index + 1 }}.
-                    </td>
-                    <td style="width: 83%; vertical-align: top;">
-                        {!! strip_leading_blocks($q['question']) !!}
-                    </td>
-                    <td style="width: 15%; text-align: right; font-weight: bold; vertical-align: top;">
-                        @if (!empty($q['mark'])) ({{ $q['mark'] }}) @endif
+                    <td colspan="2" style="padding-top: 8px; text-align: center; font-style: italic;">
+                        {!! nl2br(e($exam->instruction)) !!}
                     </td>
                 </tr>
-                @if (!empty($q['sub_questions']))
-                    @foreach ($q['sub_questions'] as $subIdx => $subQ)
-                        <tr>
-                            <td></td>
-                            <td style="padding-left: 32px;">
-                                <span style="font-weight: bold;">
-                                    {{ is_numeric($subIdx) ? chr(97 + $loop->index) : $subIdx }})
-                                </span>
-                                <span style="margin-left:8px;">
-                                    {!! strip_leading_blocks($subQ['question'] ?? '') !!}
-                                </span>
-                            </td>
-                            <td style="text-align: right; font-weight: bold;">
-                                @if (!empty($subQ['mark'])) ({{ $subQ['mark'] }}) @endif
-                            </td>
-                        </tr>
-                    @endforeach
-                @endif
             @endif
-        @endforeach
-        </tbody>
-    </table>
+        </table>
+    </div>
 
-    <div style="page-break-after: always;"></div>
-    <div class="section-title">Answer Sheet</div>
-    <p style="margin-bottom:12px;">Please write your answers below. Use additional sheets if necessary.</p>
-    @for ($i = 1; $i <= $questionCount; $i++)
-        <p class="answer-sheet-question">Question {{ $i }}:</p>
-        <div class="answer-sheet-line"></div>
-        <div class="answer-sheet-line"></div>
-    @endfor
+    <div class="warning-block">
+        <h4>WARNING</h4>
+        <p>Cheating is strictly prohibited and will be subject to disciplinary action, including dismissal, as outlined in the Student Academic Performance Evaluation Regulations.</p>
+        <p>This question paper, along with all used and unused rough/graph paper, must be submitted at the end of the examination. No examination materials may be removed from the examination hall.</p>
+    </div>
 
-    {{-- Page Number (footer, all pages except cover page) --}}
-    <script type="text/php">
-        if (isset($pdf)) {
-            $font = $fontMetrics->get_font("DejaVu Sans, Arial, Helvetica, sans-serif", "normal");
-            $size = 10;
-            $pageText = "Page {PAGE_NUM} of {PAGE_COUNT}";
-            $marginLeft = 50; // match your @page margin
-            $marginRight = 50;
-            $pageWidth = 595; // A4 width in points
-            $contentWidth = $pageWidth - $marginLeft - $marginRight;
-            $textWidth = $fontMetrics->getTextWidth($pageText, $font, $size);
+    <h4 style="margin-top: 60px; text-align: center;">APPROVED BY</h4>
+</div>
 
-            $x = 265;
-            $y = 820; // adjust for your footer (bottom margin + a bit up)
+<div style="page-break-after: always;"></div>
 
-            // Use on all pages or add condition for non-cover pages
-            $pdf->page_text($x, $y, $pageText, $font, $size, [0,0,0]);
-        }
-    </script>
+
+{{-- QUESTIONS SECTION --}}
+<div class="section-title">Exam Questions</div>
+@foreach ($questions as $index => $q)
+    <div class="question">
+        <p><strong>Question {{ $index + 1 }}</strong></p>
+
+        @if (!empty($q['sub_questions']))
+            @foreach ($q['sub_questions'] as $subIdx => $subQ)
+                <div style="margin-left: 25px; margin-bottom: 6px;">
+                    <p style="margin: 0;">
+                        <strong>{{ chr(97 + $loop->index) }})</strong>
+                        {!! strip_leading_blocks($subQ['question'] ?? '') !!}
+                    </p>
+                    @if (!empty($subQ['mark']))
+                        <p style="text-align: right; margin: 0 0 10px 0;">({{ $subQ['mark'] }} Marks)</p>
+                    @endif
+                </div>
+            @endforeach
+        @else
+            <div style="margin-left: 25px; margin-bottom: 6px;">
+                <p style="margin: 0;">
+                    {!! strip_leading_blocks($q['question']) !!}
+                </p>
+                @if (!empty($q['mark']))
+                    <p style="text-align: right; margin: 0 0 10px 0;">({{ $q['mark'] }} Marks)</p>
+                @endif
+            </div>
+        @endif
+
+        @php
+            $totalMark = 0;
+            if (!empty($q['sub_questions'])) {
+                $totalMark = collect($q['sub_questions'])->sum(fn ($sub) => $sub['mark'] ?? 0);
+            } else {
+                $totalMark = $q['mark'] ?? 0;
+            }
+        @endphp
+        <p style="text-align: right; font-weight: bold; margin-top: 5px;">[Total: {{ $totalMark }} marks]</p>
+    </div>
+@endforeach
+
+{{-- PAGE FOOTER --}}
+<script type="text/php">
+    if (isset($pdf)) {
+        $font = $fontMetrics->get_font("DejaVu Sans", "normal");
+        $size = 10;
+        $pageText = "Page {PAGE_NUM} of {PAGE_COUNT}";
+        $x = 265;
+        $y = 820;
+        $pdf->page_text($x, $y, $pageText, $font, $size, [0, 0, 0]);
+    }
+</script>
 
 </body>
 </html>
