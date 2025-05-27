@@ -113,48 +113,51 @@
             $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
         @endphp
 
-        <!-- TOS Table -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="card-title">Table of Specification (TOS)</h5>
-            </div>
-            <div class="card-body table-responsive">
-                <table class="table table-bordered text-center align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>#</th>
-                            <th>TOS Specification</th>
-                            <th>CC</th>
-                            <th>Vetter</th>
-                            <th>HOD</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($tos as $index => $row)
-                            <tr>
-                                <td>{{ $index + 1 }}</td>
-                                <td>
-                                    <input type="text" class="form-control" value="{{ $row['spec'] ?? '' }}" readonly>
-                                </td>
-                                <td>
-                                    <input type="checkbox" disabled {{ !empty($row['cc']) ? 'checked' : '' }}>
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="tos[{{ $index }}][vetter]" value="1" {{ !empty($row['vetter']) ? 'checked' : '' }}>
-                                </td>
-                                <td>
-                                    <input type="checkbox" disabled {{ !empty($row['hod']) ? 'checked' : '' }}>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-muted">No TOS items found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<!-- TOS Table -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Table of Specification (TOS)</h5>
+        @if ($exam->course && $exam->course->tos_pdf)
+            <a href="{{ asset('storage/' . $exam->course->tos_pdf) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-file-pdf me-1"></i> View TOS PDF
+            </a>
+        @endif
+    </div>
+    <div class="card-body table-responsive">
+        @if (!empty($tos))
+        <table class="table table-bordered text-center align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>PLO</th>
+                    <th>CLO</th>
+                    <th>Learning Outcome</th>
+                    <th>Assessment Method</th>
+                    <th>Mark as Covered</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($tos as $index => $entry)
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $entry['plo'] ?? '-' }}</td>
+                        <td>{{ $entry['clo'] ?? '-' }}</td>
+                        <td class="text-start">{{ $entry['learning_outcome'] ?? '-' }}</td>
+                        <td>{{ $entry['assessment'] ?? '-' }}</td>
+                        <td>
+                            <input type="checkbox" name="tos[{{ $index }}][vetter]" value="1"
+                                   {{ !empty($entry['vetter']) ? 'checked' : '' }}>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+        @else
+            <p class="text-muted fst-italic mb-0">No TOS data available.</p>
+        @endif
+    </div>
+</div>
+
 
         {{-- Questions --}}
         @foreach ($questions as $index => $q)

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Course extends Model
 {
-    protected $fillable = ['course_code', 'course_name', 'tos'];
+    protected $fillable = ['course_code', 'course_name', 'tos', 'tos_pdf'];
 
     protected $casts = [
         'tos' => 'array',

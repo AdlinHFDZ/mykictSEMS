@@ -35,8 +35,8 @@
 
     {{-- Edit Course Form --}}
     <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <form method="POST" action="{{ route('courses.update', $course->id) }}">
+        <div class="col-md-10 offset-md-1">
+            <form method="POST" action="{{ route('courses.update', $course->id) }}" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -50,40 +50,56 @@
                     <input type="text" name="course_name" class="form-control" required value="{{ old('course_name', $course->course_name) }}">
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label">Replace TOS PDF (optional)</label>
+                    <input type="file" name="tos_pdf" accept="application/pdf" class="form-control">
+                    @if ($course->tos_pdf)
+                        <div class="mt-2">
+                            <a href="{{ asset('storage/' . $course->tos_pdf) }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                View Existing TOS PDF
+                            </a>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="remove_pdf" id="remove_pdf">
+                                <label class="form-check-label" for="remove_pdf">
+                                    Remove existing PDF
+                                </label>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
                 <h5 class="mt-4">Table of Specification (TOS)</h5>
 
-                <div id="tos-table">
-                    <div class="row mb-2">
-                        <div class="col-md-1 text-center"><strong>No.</strong></div>
-                        <div class="col-md-6"><strong>TOS Spec</strong></div>
-                        <div class="col-md-1 text-center"><strong>CC</strong></div>
-                        <div class="col-md-1 text-center"><strong>Vetter</strong></div>
-                        <div class="col-md-1 text-center"><strong>HOD</strong></div>
-                    </div>
+                <div class="row fw-bold mb-2 text-center">
+                    <div class="col-md-1">#</div>
+                    <div class="col-md-2">PLO</div>
+                    <div class="col-md-2">CLO</div>
+                    <div class="col-md-4">Learning Outcome</div>
+                    <div class="col-md-3">Assessment Method</div>
+                </div>
 
-                    <div id="tos-rows">
-                        @php
-                            $tos = is_array($course->tos) ? $course->tos : json_decode($course->tos, true) ?? [];
-                        @endphp
+                <div id="tos-rows">
+                    @php
+                        $tos = is_array($course->tos) ? $course->tos : json_decode($course->tos, true) ?? [];
+                    @endphp
 
-                        @foreach ($tos as $index => $row)
-                            <div class="row mb-2">
-                                <div class="col-md-1 text-center">{{ $index + 1 }}</div>
-                                <div class="col-md-6">
-                                    <input type="text" name="tos[{{ $index }}][spec]" class="form-control" value="{{ $row['spec'] ?? '' }}" required>
-                                </div>
-                                <div class="col-md-1 text-center">
-                                    <input type="checkbox" disabled {{ !empty($row['cc']) ? 'checked' : '' }}>
-                                </div>
-                                <div class="col-md-1 text-center">
-                                    <input type="checkbox" disabled {{ !empty($row['vetter']) ? 'checked' : '' }}>
-                                </div>
-                                <div class="col-md-1 text-center">
-                                    <input type="checkbox" disabled {{ !empty($row['hod']) ? 'checked' : '' }}>
-                                </div>
+                    @foreach ($tos as $index => $item)
+                        <div class="row mb-2">
+                            <div class="col-md-1 text-center">{{ $index + 1 }}</div>
+                            <div class="col-md-2">
+                                <input type="number" name="tos[{{ $index }}][plo]" class="form-control" value="{{ $item['plo'] ?? '' }}" required>
                             </div>
-                        @endforeach
-                    </div>
+                            <div class="col-md-2">
+                                <input type="number" name="tos[{{ $index }}][clo]" class="form-control" value="{{ $item['clo'] ?? '' }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <textarea name="tos[{{ $index }}][learning_outcome]" class="form-control" rows="2" required>{{ $item['learning_outcome'] ?? '' }}</textarea>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" name="tos[{{ $index }}][assessment]" class="form-control" value="{{ $item['assessment'] ?? '' }}" required>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
 
                 <div class="text-start mt-3">
@@ -111,17 +127,17 @@ function addTosRow() {
 
     row.innerHTML = `
         <div class="col-md-1 text-center">${tosIndex + 1}</div>
-        <div class="col-md-6">
-            <input type="text" name="tos[${tosIndex}][spec]" class="form-control" required>
+        <div class="col-md-2">
+            <input type="number" name="tos[${tosIndex}][plo]" class="form-control" required>
         </div>
-        <div class="col-md-1 text-center">
-            <input type="checkbox" disabled>
+        <div class="col-md-2">
+            <input type="number" name="tos[${tosIndex}][clo]" class="form-control" required>
         </div>
-        <div class="col-md-1 text-center">
-            <input type="checkbox" disabled>
+        <div class="col-md-4">
+            <textarea name="tos[${tosIndex}][learning_outcome]" class="form-control" rows="2" required></textarea>
         </div>
-        <div class="col-md-1 text-center">
-            <input type="checkbox" disabled>
+        <div class="col-md-3">
+            <input type="text" name="tos[${tosIndex}][assessment]" class="form-control" required>
         </div>
     `;
     container.appendChild(row);

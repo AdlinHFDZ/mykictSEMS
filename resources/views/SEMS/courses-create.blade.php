@@ -33,10 +33,9 @@
         </div>
     @endif
 
-    {{-- Course Form --}}
     <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <form method="POST" action="{{ route('courses.store') }}">
+        <div class="col-md-10 offset-md-1">
+            <form method="POST" action="{{ route('courses.store') }}" enctype="multipart/form-data">
                 @csrf
 
                 <div class="mb-3">
@@ -49,24 +48,29 @@
                     <input type="text" name="course_name" class="form-control" required value="{{ old('course_name') }}">
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label">Upload TOS PDF</label>
+                    <input type="file" name="tos_pdf" accept="application/pdf" class="form-control">
+                </div>
+
                 <h5 class="mt-4">Table of Specification (TOS)</h5>
 
                 <div id="tos-table">
-                    <div class="row mb-2">
-                        <div class="col-md-1 text-center"><strong>No.</strong></div>
-                        <div class="col-md-6"><strong>TOS Spec</strong></div>
-                        <div class="col-md-1 text-center"><strong>CC</strong></div>
-                        <div class="col-md-1 text-center"><strong>Vetter</strong></div>
-                        <div class="col-md-1 text-center"><strong>HOD</strong></div>
+                    <div class="row fw-bold mb-2 text-center">
+                        <div class="col-md-1">#</div>
+                        <div class="col-md-2">PLO</div>
+                        <div class="col-md-2">CLO</div>
+                        <div class="col-md-4">Learning Outcome</div>
+                        <div class="col-md-3">Assessment Method</div>
                     </div>
 
                     <div id="tos-rows">
-                        <!-- Dynamic TOS rows will be inserted here -->
+                        <!-- Dynamic rows -->
                     </div>
-                </div>
 
-                <div class="text-start mt-3">
-                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="addTosRow()">+ Add Row</button>
+                    <div class="text-start mt-3">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addTosRow()">+ Add Row</button>
+                    </div>
                 </div>
 
                 <div class="text-center mt-4">
@@ -90,25 +94,24 @@ function addTosRow() {
 
     row.innerHTML = `
         <div class="col-md-1 text-center">${tosIndex + 1}</div>
-        <div class="col-md-6">
-            <input type="text" name="tos[${tosIndex}][spec]" class="form-control" required>
+        <div class="col-md-2">
+            <input type="number" name="tos[${tosIndex}][plo]" class="form-control" required>
         </div>
-        <div class="col-md-1 text-center">
-            <input type="checkbox" disabled>
+        <div class="col-md-2">
+            <input type="number" name="tos[${tosIndex}][clo]" class="form-control" required>
         </div>
-        <div class="col-md-1 text-center">
-            <input type="checkbox" disabled>
+        <div class="col-md-4">
+            <textarea name="tos[${tosIndex}][learning_outcome]" class="form-control" rows="2" required></textarea>
         </div>
-        <div class="col-md-1 text-center">
-            <input type="checkbox" disabled>
+        <div class="col-md-3">
+            <input type="text" name="tos[${tosIndex}][assessment]" class="form-control" required>
         </div>
     `;
     container.appendChild(row);
     tosIndex++;
 }
 
-// Auto add 1 row when page loads
-window.onload = function() {
+window.onload = function () {
     addTosRow();
 };
 </script>
