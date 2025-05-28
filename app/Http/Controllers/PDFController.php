@@ -8,15 +8,35 @@ use App\Models\Exam;
 
 class PDFController extends Controller
 {
+    // Count all question parts: main, sub, breakdown
+    private static function countQuestionParts($questions)
+    {
+        $count = 0;
+        foreach ($questions as $q) {
+            if (!empty($q['question'])) $count++; // Main question
+            if (!empty($q['sub_questions'])) {
+                foreach ($q['sub_questions'] as $sub) {
+                    if (!empty($sub['question'])) $count++; // Sub-question
+                    if (!empty($sub['breakdowns'])) {
+                        foreach ($sub['breakdowns'] as $b) {
+                            if (!empty($b['question'])) $count++; // Breakdown
+                        }
+                    }
+                }
+            }
+        }
+        return $count;
+    }
+
     public function download($id)
     {
         $exam = Exam::with(['createdBy', 'semester'])->findOrFail($id);
         $questions = json_decode($exam->questions, true) ?? [];
 
-        // Count only questions that are not empty
-        $questionCount = count(array_filter($questions, fn($q) => !empty($q['question'])));
+        // Use the improved count
+        $questionCount = self::countQuestionParts($questions);
 
-        // Estimate total pages: 1 cover + 1 per 2 questions (adjust logic if needed)
+        // Estimate total pages: 1 cover + 1 per 2 question parts
         $questionsPerPage = 2;
         $questionPages = ceil($questionCount / $questionsPerPage);
         $totalPages = 1 + $questionPages;
@@ -32,7 +52,7 @@ class PDFController extends Controller
         $exam = Exam::with(['createdBy', 'semester'])->findOrFail($id);
         $questions = json_decode($exam->questions, true) ?? [];
 
-        $questionCount = count(array_filter($questions, fn($q) => !empty($q['question'])));
+        $questionCount = self::countQuestionParts($questions);
         $questionsPerPage = 2;
         $questionPages = ceil($questionCount / $questionsPerPage);
         $totalPages = 1 + $questionPages;

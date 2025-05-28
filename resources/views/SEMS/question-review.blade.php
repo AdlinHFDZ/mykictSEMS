@@ -3,6 +3,8 @@
 @section('content')
 @php
     use App\Enums\ExamStatus;
+    $questions = is_array($exam->questions) ? $exam->questions : json_decode($exam->questions, true) ?? [];
+    $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
 @endphp
 
 <div class="content container d-flex flex-column align-items-center py-5" style="min-height: 100vh;">
@@ -108,87 +110,118 @@
         @csrf
         <input type="hidden" name="exam_id" value="{{ $exam->id }}">
 
-        @php
-            $questions = json_decode($exam->questions, true) ?? [];
-            $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
-        @endphp
-
-<!-- TOS Table -->
-<div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Table of Specification (TOS)</h5>
-        @if ($exam->course && $exam->course->tos_pdf)
-            <a href="{{ asset('storage/' . $exam->course->tos_pdf) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                <i class="fas fa-file-pdf me-1"></i> View TOS PDF
-            </a>
-        @endif
-    </div>
-    <div class="card-body table-responsive">
-        @if (!empty($tos))
-        <table class="table table-bordered text-center align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>PLO</th>
-                    <th>CLO</th>
-                    <th>Learning Outcome</th>
-                    <th>Assessment Method</th>
-                    <th>Mark as Covered</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($tos as $index => $entry)
-                    <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $entry['plo'] ?? '-' }}</td>
-                        <td>{{ $entry['clo'] ?? '-' }}</td>
-                        <td class="text-start">{{ $entry['learning_outcome'] ?? '-' }}</td>
-                        <td>{{ $entry['assessment'] ?? '-' }}</td>
-                        <td>
-                            <input type="checkbox" name="tos[{{ $index }}][vetter]" value="1"
-                                   {{ !empty($entry['vetter']) ? 'checked' : '' }}>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-        @else
-            <p class="text-muted fst-italic mb-0">No TOS data available.</p>
-        @endif
-    </div>
-</div>
-
+        {{-- TOS Table --}}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Table of Specification (TOS)</h5>
+                @if ($exam->course && $exam->course->tos_pdf)
+                    <a href="{{ asset('storage/' . $exam->course->tos_pdf) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-file-pdf me-1"></i> View TOS PDF
+                    </a>
+                @endif
+            </div>
+            <div class="card-body table-responsive">
+                @if (!empty($tos))
+                <table class="table table-bordered text-center align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>PLO</th>
+                            <th>CLO</th>
+                            <th>Learning Outcome</th>
+                            <th>Assessment Method</th>
+                            <th>Mark as Covered</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($tos as $index => $entry)
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>{{ $entry['plo'] ?? '-' }}</td>
+                                <td>{{ $entry['clo'] ?? '-' }}</td>
+                                <td class="text-start">{{ $entry['learning_outcome'] ?? '-' }}</td>
+                                <td>{{ $entry['assessment'] ?? '-' }}</td>
+                                <td>
+                                    <input type="checkbox" name="tos[{{ $index }}][vetter]" value="1"
+                                           {{ !empty($entry['vetter']) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                @else
+                    <p class="text-muted fst-italic mb-0">No TOS data available.</p>
+                @endif
+            </div>
+        </div>
 
         {{-- Questions --}}
-        @foreach ($questions as $index => $q)
+        @foreach ($questions as $qIdx => $q)
             <div class="card mb-4">
-                <div class="card-header">
-                    <strong>Question {{ $index + 1 }}</strong>
+                <div class="card-header bg-light">
+                    <strong>Question {{ $loop->iteration }}</strong>
                 </div>
                 <div class="card-body">
-                    <p><strong>Question:</strong> {!! $q['question'] ?? 'N/A' !!}</p>
-                    <p><strong>Mark:</strong> {{ $q['mark'] ?? '-' }}</p>
-                    <p><strong>Answer:</strong> {!! $q['answer'] ?? 'N/A' !!}</p>
+                    <div class="mb-2">
+                        <span class="fw-bold">Main Question:</span> {!! $q['question'] ?? '<span class="text-muted">N/A</span>' !!}
+                    </div>
+                    @if (isset($q['mark']))
+                        <div class="mb-2">
+                            <span class="fw-bold">Mark:</span> {{ $q['mark'] }}
+                        </div>
+                    @endif
+                    @if (isset($q['answer']))
+                        <div class="mb-2">
+                            <span class="fw-bold">Answer:</span> {!! $q['answer'] !!}
+                        </div>
+                    @endif
+
                     {{-- Sub-Questions --}}
                     @if (!empty($q['sub_questions']))
-                        <div class="ms-4 mt-3">
-                            <strong>Sub-Questions:</strong>
+                        <div class="ps-3 border-start mb-2">
+                            <div class="fw-semibold mb-1">Sub-Questions:</div>
                             @foreach ($q['sub_questions'] as $subIdx => $subQ)
-                                <div class="mb-2">
-                                    <span class="fw-bold">{{ is_numeric($subIdx) ? chr(97 + $loop->index) : $subIdx }})</span>
-                                    {!! $subQ['question'] ?? '' !!}
-                                    <span class="ms-2"><strong>Mark:</strong> {{ $subQ['mark'] ?? '-' }}</span>
+                                <div class="mb-3 ps-3 border-start">
+                                    <div>
+                                        <span class="fw-bold">{{ is_numeric($subIdx) ? chr(97 + $loop->index) : $subIdx }})</span>
+                                        {!! $subQ['question'] ?? '<span class="text-muted">N/A</span>' !!}
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold">Mark:</span> {{ $subQ['mark'] ?? '-' }}
+                                    </div>
                                     @if (!empty($subQ['answer']))
-                                        <div><strong>Answer:</strong> {!! $subQ['answer'] !!}</div>
+                                        <div>
+                                            <span class="fw-bold">Answer:</span> {!! $subQ['answer'] !!}
+                                        </div>
+                                    @endif
+
+                                    {{-- Breakdown --}}
+                                    @if (!empty($subQ['breakdowns']))
+                                        <div class="ps-3 border-start mt-2">
+                                            <span class="fw-semibold">Breakdowns:</span>
+                                            @foreach ($subQ['breakdowns'] as $bIdx => $break)
+                                                <div class="mb-2 ps-3 border-start">
+                                                    <span class="fw-bold">{{ is_numeric($bIdx) ? ['i','ii','iii','iv'][$loop->index] : $bIdx }})</span>
+                                                    {!! $break['question'] ?? '<span class="text-muted">N/A</span>' !!}
+                                                    <span class="fw-bold ms-2">Mark:</span> {{ $break['mark'] ?? '-' }}
+                                                    @if (!empty($break['answer']))
+                                                        <div>
+                                                            <span class="fw-bold">Answer:</span> {!! $break['answer'] !!}
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     @endif
                                 </div>
                             @endforeach
                         </div>
                     @endif
 
+                    {{-- Vetter Comment Input --}}
                     <div class="form-group mt-3">
-                        <label for="comment{{ $index }}">Your Comment:</label>
-                        <textarea name="comments[{{ $index }}]" id="comment{{ $index }}" rows="3" class="form-control" placeholder="Suggest edits, corrections..."></textarea>
+                        <label for="comment{{ $qIdx }}" class="fw-bold">Your Comment:</label>
+                        <textarea name="comments[{{ $qIdx }}]" id="comment{{ $qIdx }}" rows="3" class="form-control" placeholder="Suggest edits, corrections..."></textarea>
                     </div>
                 </div>
             </div>

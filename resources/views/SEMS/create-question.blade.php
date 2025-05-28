@@ -20,6 +20,7 @@
         @csrf
         <input type="hidden" name="exam_id" value="{{ $exam->id }}">
 
+        {{-- Exam Info --}}
         <div class="row justify-content-center mb-4">
             <div class="col-lg-8">
                 <div class="card border-0 shadow-sm">
@@ -37,27 +38,25 @@
                         <hr class="mb-4">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label exam-details-label"><i class="bi bi-journal-text me-1"></i> Course Name</label>
+                                <label class="form-label exam-details-label">Course Name</label>
                                 <input type="text" class="form-control exam-details-input" value="{{ $exam->course_name }}" disabled readonly>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label exam-details-label"><i class="bi bi-code-slash me-1"></i> Course Code</label>
+                                <label class="form-label exam-details-label">Course Code</label>
                                 <input type="text" class="form-control exam-details-input" value="{{ $exam->course_code }}" disabled readonly>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label exam-details-label"><i class="bi bi-layers me-1"></i> Section</label>
+                                <label class="form-label exam-details-label">Section</label>
                                 <input type="text" class="form-control exam-details-input" value="{{ $exam->section }}" disabled readonly>
                             </div>
-                            <!-- Coordinator -->
                             <div class="col-md-6 mb-3">
-                                <label class="form-label exam-details-label"><i class="bi bi-person-badge me-1"></i> Coordinator</label>
+                                <label class="form-label exam-details-label">Coordinator</label>
                                 <input type="text" class="form-control exam-details-input"
                                     value="{{ $exam->ccAssignment && $exam->ccAssignment->user ? $exam->ccAssignment->user->name : 'N/A' }}"
                                     disabled readonly>
                             </div>
-                            <!-- Vetters (comma-separated) -->
                             <div class="col-md-6 mb-3">
-                                <label class="form-label exam-details-label"><i class="bi bi-person-check me-1"></i> Vetters</label>
+                                <label class="form-label exam-details-label">Vetters</label>
                                 <input
                                     type="text"
                                     class="form-control exam-details-input"
@@ -70,7 +69,7 @@
                                 >
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label exam-details-label"><i class="bi bi-calendar-event me-1"></i> Semester</label>
+                                <label class="form-label exam-details-label">Semester</label>
                                 <input type="text" class="form-control exam-details-input" value="{{ $exam->semester->name ?? 'N/A' }}" disabled readonly>
                             </div>
                         </div>
@@ -79,46 +78,45 @@
             </div>
         </div>
 
-{{-- Updated TOS Table --}}
-<div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Table of Specification (TOS)</h5>
-        @if ($exam->course && $exam->course->tos_pdf)
-            <a href="{{ asset('storage/' . $exam->course->tos_pdf) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                <i class="fas fa-file-pdf me-1"></i> View TOS PDF
-            </a>
-        @endif
-    </div>
-    <div class="card-body table-responsive">
-        @if (!empty($tos))
-        <table class="table table-bordered text-center align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>PLO</th>
-                    <th>CLO</th>
-                    <th>Learning Outcome</th>
-                    <th>Assessment Method</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($tos as $index => $entry)
-                    <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $entry['plo'] ?? '-' }}</td>
-                        <td>{{ $entry['clo'] ?? '-' }}</td>
-                        <td class="text-start">{{ $entry['learning_outcome'] ?? '-' }}</td>
-                        <td>{{ $entry['assessment'] ?? '-' }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-        @else
-            <p class="text-muted fst-italic mb-0">No TOS data available.</p>
-        @endif
-    </div>
-</div>
-
+        {{-- TOS Table --}}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Table of Specification (TOS)</h5>
+                @if ($exam->course && $exam->course->tos_pdf)
+                    <a href="{{ asset('storage/' . $exam->course->tos_pdf) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-file-pdf me-1"></i> View TOS PDF
+                    </a>
+                @endif
+            </div>
+            <div class="card-body table-responsive">
+                @if (!empty($tos))
+                <table class="table table-bordered text-center align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>PLO</th>
+                            <th>CLO</th>
+                            <th>Learning Outcome</th>
+                            <th>Assessment Method</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($tos as $index => $entry)
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>{{ $entry['plo'] ?? '-' }}</td>
+                                <td>{{ $entry['clo'] ?? '-' }}</td>
+                                <td class="text-start">{{ $entry['learning_outcome'] ?? '-' }}</td>
+                                <td>{{ $entry['assessment'] ?? '-' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                @else
+                    <p class="text-muted fst-italic mb-0">No TOS data available.</p>
+                @endif
+            </div>
+        </div>
 
         {{-- Exam Settings --}}
         <div class="card p-3 mb-4">
@@ -152,142 +150,105 @@
             </div>
         </div>
 
-        {{-- Question Editor Section --}}
-        @for ($i = 0; $i < 4; $i++)
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title">Question {{ $i + 1 }}</h5>
-                </div>
-                <div class="card-body">
-                    {{-- Main Question --}}
-                    <div class="form-group row">
-                        <label class="col-form-label col-md-2">Question</label>
-                        <div class="col-md-10">
-                            <textarea class="tinymce form-control" id="question-{{ $i }}" name="questions[{{ $i }}][question]">{{ $questions[$i]['question'] ?? '' }}</textarea>
-<div class="dropdown mt-2">
-  <button class="btn btn-outline-dark dropdown-toggle btn-sm" type="button" id="semsAiDropdown-{{ $i }}" data-bs-toggle="dropdown" aria-expanded="false">
-    SEMS AI
+        {{-- Dynamic Question List --}}
+        <div id="question-container">
+            @foreach ($questions as $i => $question)
+                <div class="card mb-4 question-block">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Question {{ $i + 1 }}</h5>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeQuestion(this)">Remove Question</button>
+                    </div>
+                    <div class="card-body">
+                        {{-- Main Question --}}
+                        <div class="form-group row">
+                            <label class="col-form-label col-md-2">Main Question</label>
+                            <div class="col-md-10">
+                                <textarea class="form-control tinymce" name="questions[{{ $i }}][question]">{{ $question['question'] ?? '' }}</textarea>
+                            </div>
+                            <div class="dropdown mb-2">
+  <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+      SEMS AI
   </button>
-  <ul class="dropdown-menu" aria-labelledby="semsAiDropdown-{{ $i }}">
-    <li><a class="dropdown-item ask-ai-btn" href="#" data-target="question-{{ $i }}">Ask AI for Suggestion</a></li>
-    <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="question-{{ $i }}">Improve Clarity</a></li>
-    <li><a class="dropdown-item answer-ai-btn" href="#" data-target="question-{{ $i }}">Generate Answer</a></li>
-    <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="question-{{ $i }}">Check Similarity</a></li>
+  <ul class="dropdown-menu">
+      <li><a class="dropdown-item ask-ai-btn" href="#" data-target="TEXTAREA_ID">Ask AI for Suggestion</a></li>
+      <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="TEXTAREA_ID">Improve Clarity</a></li>
+      <li><a class="dropdown-item answer-ai-btn" href="#" data-target="TEXTAREA_ID">Generate Answer</a></li>
+      <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="TEXTAREA_ID">Check Similarity</a></li>
   </ul>
 </div>
 
-
-
-
                         </div>
-                    </div>
-                    <div class="form-group row mt-2">
-                        <label class="col-form-label col-md-2">Mark</label>
-                        <div class="col-md-10">
-                            <input type="number" class="form-control" name="questions[{{ $i }}][mark]" min="0"
-                                value="{{ $questions[$i]['mark'] ?? '' }}" placeholder="Enter mark for this question">
-                        </div>
-                    </div>
-                    <div class="form-group row mt-3">
-                        <label class="col-form-label col-md-2">Answer</label>
-                        <div class="col-md-10">
-                            <textarea class="tinymce form-control" name="questions[{{ $i }}][answer]">{{ $questions[$i]['answer'] ?? '' }}</textarea>
-                        </div>
-                    </div>
 
-{{-- Sub-Questions --}}
-<hr>
-<h6>Sub-Questions</h6>
-<div id="sub-questions-{{ $i }}">
-    @php
-        $subQuestions = $questions[$i]['sub_questions'] ?? [];
-    @endphp
-    @foreach ($subQuestions as $subIndex => $subQ)
-        @php $subLabel = is_numeric($subIndex) ? chr(97 + $loop->index) : $subIndex; @endphp
-        <div class="sub-question-block mb-3 input-group align-items-start">
-            <span class="input-group-text">{{ $subLabel }})</span>
-            <div class="flex-grow-1 me-2">
-                <textarea class="form-control tinymce mb-2" id="sub-q-{{ $i }}-{{ $subLabel }}"
-                    name="questions[{{ $i }}][sub_questions][{{ $subLabel }}][question]"
-                    rows="2" placeholder="Sub-question">{!! $subQ['question'] ?? '' !!}</textarea>
-
-                <div class="dropdown mb-2">
-                    <button class="btn btn-outline-dark dropdown-toggle btn-sm" type="button"
-                        id="subSemsAiDropdown-{{ $i }}-{{ $subLabel }}"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        SEMS AI
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="subSemsAiDropdown-{{ $i }}-{{ $subLabel }}">
-                        <li><a class="dropdown-item ask-ai-btn" href="#" data-target="sub-q-{{ $i }}-{{ $subLabel }}">Ask AI for Suggestion</a></li>
-                        <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="sub-q-{{ $i }}-{{ $subLabel }}">Improve Clarity</a></li>
-                        <li><a class="dropdown-item answer-ai-btn" href="#" data-target="sub-q-{{ $i }}-{{ $subLabel }}">Generate Answer</a></li>
-                        <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="sub-q-{{ $i }}-{{ $subLabel }}">Check Similarity</a></li>
-                    </ul>
-                </div>
-
-                <input type="number" class="form-control mb-2"
-                    name="questions[{{ $i }}][sub_questions][{{ $subLabel }}][mark]"
-                    value="{{ $subQ['mark'] ?? '' }}" placeholder="Mark" min="0" style="max-width: 120px;">
-                <textarea class="form-control tinymce"
-                    name="questions[{{ $i }}][sub_questions][{{ $subLabel }}][answer]"
-                    rows="2" placeholder="Answer">{!! $subQ['answer'] ?? '' !!}</textarea>
-            </div>
-            <button type="button" class="btn btn-danger align-middle-self-stretch" onclick="removeSubQuestion(this)">Remove</button>
-        </div>
-    @endforeach
-</div>
-<button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addSubQuestion({{ $i }})">+ Add Sub-question</button>
-
-
-                    {{-- Vetter Comment History for this question --}}
-                    <div class="mt-4">
-                        <h6 class="mb-3 text-primary">Vetter Comment History</h6>
-                        <div class="d-flex flex-column gap-3">
-                            @if ($exam->vetterAssignments->count())
-                                @foreach ($exam->vetterAssignments as $vetterAssignment)
-                                    @php
-                                        $vetterName = $vetterAssignment->user->name ?? 'Unknown Vetter';
-                                        // Use $i as the question index!
-                                        $vetterLogs = collect($vetterComments[$i] ?? [])->filter(function($log) use ($vetterName) {
-                                            return isset($log['name']) && $log['name'] === $vetterName;
-                                        });
-                                    @endphp
-                                    <div class="mb-3">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
-                                                style="width: 38px; height: 38px; font-size: 18px;">
-                                                {{ strtoupper(substr($vetterName, 0, 1)) }}
+                        {{-- Sub-Questions --}}
+                        <div class="mt-4">
+                            <h6>Sub-Questions</h6>
+                            <div id="sub-questions-{{ $i }}">
+                                @php $subs = $question['sub_questions'] ?? []; @endphp
+                                @foreach ($subs as $subKey => $sub)
+                                    <div class="card border mt-3 sub-question-block">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between">
+                                                <label><strong>{{ $subKey }})</strong></label>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="removeSubQuestion(this)">Remove Sub-question</button>
                                             </div>
-                                            <span class="fw-bold">{{ $vetterName }}</span>
-                                        </div>
-                                        @if ($vetterLogs->count())
-                                            @foreach ($vetterLogs as $cycle => $log)
-                                                <div class="d-flex align-items-start shadow-sm p-3 bg-white rounded mb-2"
-                                                    style="border-left: 6px solid #0d6efd;">
-                                                    <div class="flex-grow-1">
+                                            <textarea class="form-control tinymce mb-2" name="questions[{{ $i }}][sub_questions][{{ $subKey }}][question]">{{ $sub['question'] ?? '' }}</textarea>
+                                            <input type="number" name="questions[{{ $i }}][sub_questions][{{ $subKey }}][mark]" placeholder="Mark" class="form-control mb-2" style="max-width: 120px" value="{{ $sub['mark'] ?? '' }}">
+                                            <textarea class="form-control tinymce mb-3" name="questions[{{ $i }}][sub_questions][{{ $subKey }}][answer]">{{ $sub['answer'] ?? '' }}</textarea>
+                                            <textarea class="form-control tinymce mb-2" name="questions[${questionIndex}][sub_questions][${subLabel}][question]" id="${uniqueId}-q"></textarea>
+<div class="dropdown mb-2">
+    <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        SEMS AI
+    </button>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item ask-ai-btn" href="#" data-target="${uniqueId}-q">Ask AI for Suggestion</a></li>
+        <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="${uniqueId}-q">Improve Clarity</a></li>
+        <li><a class="dropdown-item answer-ai-btn" href="#" data-target="${uniqueId}-q">Generate Answer</a></li>
+        <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="${uniqueId}-q">Check Similarity</a></li>
+    </ul>
+</div>
+
+                                            {{-- Breakdown --}}
+                                            <h6 class="text-muted">Breakdowns:</h6>
+                                            <div id="breakdowns-{{ $i }}-{{ $subKey }}">
+                                                @php $breaks = $sub['breakdowns'] ?? []; @endphp
+                                                @foreach ($breaks as $bKey => $break)
+                                                    <div class="mb-2 ms-3 border p-2 rounded breakdown-block">
                                                         <div class="d-flex justify-content-between">
-                                                            <div>
-                                                                <span class="badge bg-secondary ms-0">Cycle {{ $loop->iteration }}</span>
-                                                            </div>
-                                                            <small class="text-muted">{{ $log['timestamp'] ?? 'No timestamp' }}</small>
+                                                            <label><em>{{ $bKey }})</em></label>
+                                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeBreakdown(this)">Remove Breakdown</button>
                                                         </div>
-                                                        <div class="mt-2 fst-italic" style="white-space: pre-line;">{{ $log['comment'] ?? 'No comment provided.' }}</div>
+                                                        <textarea class="form-control tinymce mb-1" name="questions[{{ $i }}][sub_questions][{{ $subKey }}][breakdowns][{{ $bKey }}][question]">{{ $break['question'] ?? '' }}</textarea>
+                                                        <input type="number" name="questions[{{ $i }}][sub_questions][{{ $subKey }}][breakdowns][{{ $bKey }}][mark]" placeholder="Mark" class="form-control mb-1" style="max-width: 120px" value="{{ $break['mark'] ?? '' }}">
+                                                        <textarea class="form-control tinymce" name="questions[{{ $i }}][sub_questions][{{ $subKey }}][breakdowns][{{ $bKey }}][answer]">{{ $break['answer'] ?? '' }}</textarea>
                                                     </div>
-                                                </div>
-                                            @endforeach
-                                        @else
-                                            <div class="text-muted fst-italic mb-3">No comments from this vetter.</div>
-                                        @endif
+                                                    <div class="dropdown mb-2">
+  <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+      SEMS AI
+  </button>
+  <ul class="dropdown-menu">
+      <li><a class="dropdown-item ask-ai-btn" href="#" data-target="TEXTAREA_ID">Ask AI for Suggestion</a></li>
+      <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="TEXTAREA_ID">Improve Clarity</a></li>
+      <li><a class="dropdown-item answer-ai-btn" href="#" data-target="TEXTAREA_ID">Generate Answer</a></li>
+      <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="TEXTAREA_ID">Check Similarity</a></li>
+  </ul>
+</div>
+
+                                                @endforeach
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addBreakdown({{ $i }}, '{{ $subKey }}')">+ Add Breakdown</button>
+                                        </div>
                                     </div>
                                 @endforeach
-                            @else
-                                <div class="text-muted fst-italic">No vetters assigned.</div>
-                            @endif
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addSubQuestion({{ $i }})">+ Add Sub-question</button>
                         </div>
                     </div>
                 </div>
-            </div>
-        @endfor
+            @endforeach
+        </div>
+        <div class="text-center">
+            <button type="button" class="btn btn-success mb-4" onclick="addQuestion()">+ Add Question</button>
+        </div>
 
         {{-- Action Buttons --}}
         <div class="text-center mb-5">
@@ -297,8 +258,27 @@
     </form>
 </div>
 
-
+<!-- AI Modal -->
+<div class="modal fade" id="aiModal" tabindex="-1" aria-labelledby="aiModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="aiModalLabel">SEMS AI Assistant</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="aiModalBody">
+        <!-- AI response will be injected here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-success" onclick="copyAISuggestion()">Copy</button>
+        <button type="button" class="btn btn-primary" onclick="insertAISuggestion()">Insert</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
+
 @push('scripts')
 <script src="https://cdn.tiny.cloud/1/d6b2sr6wvk401h8i55fuufj8wlc5pouxeasair9hg4a8zwfy/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
 
@@ -306,13 +286,11 @@
 let lastEditorId = null;
 let lastAISuggestion = '';
 
+/** Initialize TinyMCE on all editors */
 function initAllTinyMCE() {
   document.querySelectorAll('textarea.tinymce').forEach((el) => {
-    if (tinymce.get(el.id)) {
-      tinymce.get(el.id).remove();
-    }
+    if (tinymce.get(el.id)) tinymce.get(el.id).remove();
   });
-
   tinymce.init({
     selector: 'textarea.tinymce',
     plugins: [
@@ -324,29 +302,26 @@ function initAllTinyMCE() {
     ],
     toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
     tinycomments_mode: 'embedded',
-    tinycomments_author: '{{ Auth::user()->name ?? "Author" }}',
+    tinycomments_author: @json(Auth::user()->name ?? "Author"),
     mergetags_list: [{ value: 'First.Name', title: 'First Name' }, { value: 'Email', title: 'Email' }],
     ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
   });
 }
 
+/** AI dropdown and click handlers */
 function attachAIListeners() {
   document.body.addEventListener('click', function (e) {
     if (e.target.classList.contains('ask-ai-btn')) {
-      e.preventDefault();
-      runAI(e.target, 'question');
+      e.preventDefault(); runAI(e.target, 'question');
     }
     if (e.target.classList.contains('clarify-ai-btn')) {
-      e.preventDefault();
-      runAI(e.target, 'clarify');
+      e.preventDefault(); runAI(e.target, 'clarify');
     }
     if (e.target.classList.contains('answer-ai-btn')) {
-      e.preventDefault();
-      runAI(e.target, 'answer');
+      e.preventDefault(); runAI(e.target, 'answer');
     }
     if (e.target.classList.contains('similarity-ai-btn')) {
-      e.preventDefault();
-      runSimilarityCheck(e.target);
+      e.preventDefault(); runSimilarityCheck(e.target);
     }
   });
 }
@@ -355,20 +330,12 @@ async function runAI(button, type) {
   const targetId = button.getAttribute('data-target');
   const editor = tinymce.get(targetId);
   if (!editor) return alert('Editor not found.');
-
   const content = editor.getContent({ format: 'text' });
   if (!content.trim()) return alert('Please enter some content.');
-
   let prompt = content;
-  if (type === 'clarify') {
-    prompt = `Rewrite the following exam question using clear, formal, academic English:\n\n"${content}"`;
-  } else if (type === 'answer') {
-    prompt = `Provide a clear and concise model answer for the following exam question:\n\n"${content}"`;
-  }
-
-  button.innerText = 'Processing...';
-  button.disabled = true;
-
+  if (type === 'clarify') prompt = `Rewrite the following exam question using clear, formal, academic English:\n\n"${content}"`;
+  else if (type === 'answer') prompt = `Provide a clear and concise model answer for the following exam question:\n\n"${content}"`;
+  button.innerText = 'Processing...'; button.disabled = true;
   try {
     const res = await fetch('http://127.0.0.1:11434/api/generate', {
       method: 'POST',
@@ -376,7 +343,6 @@ async function runAI(button, type) {
       body: JSON.stringify({ model: 'llama3', prompt: prompt, stream: false })
     });
     const data = await res.json();
-
     lastEditorId = targetId;
     lastAISuggestion = data.response;
     document.getElementById('aiModalBody').innerText = data.response;
@@ -384,7 +350,6 @@ async function runAI(button, type) {
   } catch (err) {
     alert('❌ AI Server Error: ' + err.message);
   }
-
   button.innerText = type === 'clarify' ? 'Clarify' : type === 'answer' ? 'Answer' : 'Ask AI';
   button.disabled = false;
 }
@@ -393,25 +358,15 @@ async function runSimilarityCheck(button) {
   const targetId = button.getAttribute('data-target');
   const editor = tinymce.get(targetId);
   if (!editor) return alert('Editor not found.');
-
   const content = editor.getContent({ format: 'text' });
   if (!content.trim()) return alert('Please enter a question to check.');
-
-  button.innerText = 'Checking...';
-  button.disabled = true;
-
+  button.innerText = 'Checking...'; button.disabled = true;
   try {
     const examId = document.querySelector('input[name="exam_id"]').value;
-    const res = await fetch("{{ route('exam.check-similarity') }}", {
+    const res = await fetch(@json(route('exam.check-similarity')), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-TOKEN": '{{ csrf_token() }}',
-      },
-      body: JSON.stringify({
-        question: content,
-        exam_id: examId,
-      }),
+      headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": @json(csrf_token()), },
+      body: JSON.stringify({ question: content, exam_id: examId }),
     });
     const data = await res.json();
     let msg = '';
@@ -445,48 +400,126 @@ function insertAISuggestion() {
   }
 }
 
-function addSubQuestion(questionIndex) {
-  const subQuestionsContainer = document.getElementById(`sub-questions-${questionIndex}`);
-  const subIndex = subQuestionsContainer.querySelectorAll('.sub-question-block').length;
-  const subLabel = String.fromCharCode(97 + subIndex);
-  const uniqueId = `sub-q-${questionIndex}-${subLabel}-${Date.now()}`;
+/** Render the AI Dropdown for a given textarea id */
+function renderAIDropdown(editorId) {
+  return `
+    <div class="dropdown mb-2">
+      <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        SEMS AI
+      </button>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item ask-ai-btn" href="#" data-target="${editorId}">Ask AI for Suggestion</a></li>
+        <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="${editorId}">Improve Clarity</a></li>
+        <li><a class="dropdown-item answer-ai-btn" href="#" data-target="${editorId}">Generate Answer</a></li>
+        <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="${editorId}">Check Similarity</a></li>
+      </ul>
+    </div>`;
+}
 
-  const subBlock = document.createElement('div');
-  subBlock.className = 'sub-question-block mb-2 input-group align-items-start';
-  subBlock.innerHTML = `
-    <span class="input-group-text">${subLabel})</span>
-    <div class="flex-grow-1 me-2">
-      <textarea class="form-control tinymce mb-1" id="${uniqueId}"
-        name="questions[${questionIndex}][sub_questions][${subLabel}][question]"
-        rows="2" placeholder="Sub-question"></textarea>
-      <div class="dropdown my-1">
-        <button class="btn btn-sm btn-outline-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-          SEMS AI
-        </button>
-        <ul class="dropdown-menu">
-          <li><a class="dropdown-item ask-ai-btn" href="#" data-target="${uniqueId}">Ask AI for Suggestion</a></li>
-          <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="${uniqueId}">Improve Clarity</a></li>
-          <li><a class="dropdown-item answer-ai-btn" href="#" data-target="${uniqueId}">Generate Answer</a></li>
-          <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="${uniqueId}">Check Similarity</a></li>
-        </ul>
-      </div>
-      <input type="number" class="form-control mb-1"
-        name="questions[${questionIndex}][sub_questions][${subLabel}][mark]"
-        placeholder="Mark" min="0" style="max-width: 120px;">
-      <textarea class="form-control tinymce"
-        name="questions[${questionIndex}][sub_questions][${subLabel}][answer]"
-        rows="2" placeholder="Answer"></textarea>
+// --- Dynamic Adders ---
+
+// Adds a new main question card at the end
+function addQuestion() {
+  const questionCount = document.querySelectorAll('.question-block').length;
+  const container = document.getElementById('question-container');
+  const qIdx = questionCount;
+  const mainQId = `question-main-${qIdx}`;
+  const block = document.createElement('div');
+  block.className = 'card mb-4 question-block';
+  block.innerHTML = `
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0">Question ${qIdx + 1}</h5>
+      <button type="button" class="btn btn-sm btn-danger" onclick="removeQuestion(this)">Remove Question</button>
     </div>
-    <button type="button" class="btn btn-danger align-middle-self-stretch" onclick="removeSubQuestion(this)">Remove</button>
+    <div class="card-body">
+      <div class="form-group row">
+        <label class="col-form-label col-md-2">Main Question</label>
+        <div class="col-md-10">
+          <textarea class="form-control tinymce" name="questions[${qIdx}][question]" id="${mainQId}"></textarea>
+          ${renderAIDropdown(mainQId)}
+        </div>
+      </div>
+      <div class="mt-4">
+        <h6>Sub-Questions</h6>
+        <div id="sub-questions-${qIdx}"></div>
+        <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addSubQuestion(${qIdx})">+ Add Sub-question</button>
+      </div>
+    </div>
   `;
-
-  subQuestionsContainer.appendChild(subBlock);
+  container.appendChild(block);
   initAllTinyMCE();
 }
 
-function removeSubQuestion(button) {
-  const block = button.closest('.sub-question-block');
+// Adds a sub-question card to a given question index
+function addSubQuestion(questionIndex) {
+  const container = document.getElementById(`sub-questions-${questionIndex}`);
+  if (!container) return;
+  const count = container.querySelectorAll('.sub-question-block').length;
+  const subLabel = String.fromCharCode(97 + count); // a, b, c, d...
+  const timestamp = Date.now();
+  const uniqueId = `sub-${questionIndex}-${subLabel}-${timestamp}`;
+  const qEditorId = `${uniqueId}-q`;
+  const block = document.createElement('div');
+  block.className = 'card border mt-3 sub-question-block';
+  block.innerHTML = `
+    <div class="card-body">
+      <div class="d-flex justify-content-between">
+        <label><strong>${subLabel})</strong></label>
+        <button type="button" class="btn btn-sm btn-danger" onclick="removeSubQuestion(this)">Remove Sub-question</button>
+      </div>
+      <textarea class="form-control tinymce mb-2" name="questions[${questionIndex}][sub_questions][${subLabel}][question]" id="${qEditorId}"></textarea>
+      ${renderAIDropdown(qEditorId)}
+      <input type="number" name="questions[${questionIndex}][sub_questions][${subLabel}][mark]" placeholder="Mark" class="form-control mb-2" style="max-width: 120px">
+      <textarea class="form-control tinymce mb-3" name="questions[${questionIndex}][sub_questions][${subLabel}][answer]"></textarea>
+      <h6 class="text-muted">Breakdowns:</h6>
+      <div id="breakdowns-${questionIndex}-${subLabel}"></div>
+      <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addBreakdown(${questionIndex}, '${subLabel}')">+ Add Breakdown</button>
+    </div>
+  `;
+  container.appendChild(block);
+  initAllTinyMCE();
+}
+
+// Adds a breakdown block under a sub-question
+function addBreakdown(questionIndex, subKey) {
+  const containerId = `breakdowns-${questionIndex}-${subKey}`;
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const count = container.querySelectorAll('.breakdown-block').length;
+  const breakdownLabel = ['i', 'ii', 'iii', 'iv'][count] || `x${count + 1}`;
+  const timestamp = Date.now();
+  const uniqueId = `break-${questionIndex}-${subKey}-${breakdownLabel}-${timestamp}`;
+  const qEditorId = `${uniqueId}-q`;
+  const block = document.createElement('div');
+  block.className = 'mb-2 ms-3 border p-2 rounded breakdown-block';
+  block.innerHTML = `
+    <div class="d-flex justify-content-between">
+      <label><em>${breakdownLabel})</em></label>
+      <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeBreakdown(this)">Remove Breakdown</button>
+    </div>
+    <textarea class="form-control tinymce mb-1" id="${qEditorId}" name="questions[${questionIndex}][sub_questions][${subKey}][breakdowns][${breakdownLabel}][question]"></textarea>
+    ${renderAIDropdown(qEditorId)}
+    <input type="number" class="form-control mb-1" name="questions[${questionIndex}][sub_questions][${subKey}][breakdowns][${breakdownLabel}][mark]" placeholder="Mark" min="0" style="max-width: 120px;">
+    <textarea class="form-control tinymce" name="questions[${questionIndex}][sub_questions][${subKey}][breakdowns][${breakdownLabel}][answer]"></textarea>
+  `;
+  container.appendChild(block);
+  initAllTinyMCE();
+}
+
+// Remove a main question card
+function removeQuestion(button) {
+  const block = button.closest('.question-block');
   if (block) block.remove();
+}
+// Remove a sub-question card
+function removeSubQuestion(button) {
+  const subCard = button.closest('.sub-question-block');
+  if (subCard) subCard.remove();
+}
+// Remove a breakdown card
+function removeBreakdown(button) {
+  const breakdownBlock = button.closest('.breakdown-block');
+  if (breakdownBlock) breakdownBlock.remove();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -494,25 +527,4 @@ document.addEventListener('DOMContentLoaded', function () {
   attachAIListeners();
 });
 </script>
-
-<!-- AI Modal -->
-<div class="modal fade" id="aiModal" tabindex="-1" aria-labelledby="aiModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content shadow-lg">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="aiModalLabel">AI Suggestion</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="aiModalBody" style="white-space: pre-wrap; font-size: 14px; max-height: 400px; overflow-y: auto;">
-        Loading...
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" onclick="copyAISuggestion()">📋 Copy</button>
-        <button type="button" class="btn btn-success" onclick="insertAISuggestion()">⬇ Insert into Editor</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
 @endpush
-
