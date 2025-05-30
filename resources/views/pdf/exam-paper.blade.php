@@ -12,6 +12,8 @@
             line-height: 1.5;
             font-weight: normal;
         }
+        b, strong { font-weight: bold !important; }
+        i, em { font-style: italic !important; }
         .cover-logo { text-align: center; margin-bottom: 16px; }
         .cover-logo img { height: 110px; margin-bottom: 8px; }
         h2, h3, h4 { text-align: center; font-weight: bold; margin: 0; }
@@ -178,9 +180,6 @@
         <p style="text-align: right; font-weight: bold; margin-top: 12px;">[Total: {{ $totalMark }} marks]</p>
     </div>
 @endforeach
-
-
-
 
 {{-- PAGE FOOTER --}}
 <script type="text/php">
