@@ -33,6 +33,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/SEMS-dashboard', fn() => view('SEMS.SEMS-dashboard'))->name('SEMS.dashboard');
 
     /*
+|--------------------------------------------------------------------------
+| AI ROUTING
+|--------------------------------------------------------------------------
+*/
+
+Route::post('/ask-ai', [App\Http\Controllers\AIController::class, 'ask']);
+Route::post('/exam/check-similarity', [ExamController::class, 'checkSimilarity'])->name('exam.check-similarity');
+
+    /*
     |--------------------------------------------------------------------------
     | Exam Lifecycle (ExamController)
     |--------------------------------------------------------------------------
@@ -118,14 +127,7 @@ Route::middleware([
 });
 
 
-/*
-|--------------------------------------------------------------------------
-| AI ROUTING
-|--------------------------------------------------------------------------
-*/
 
-Route::post('/ask-ai', [App\Http\Controllers\AIController::class, 'ask']);
-Route::post('/exam/check-similarity', [ExamController::class, 'checkSimilarity'])->name('exam.check-similarity');
 
 
 

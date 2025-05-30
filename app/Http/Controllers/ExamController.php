@@ -200,13 +200,14 @@ public function submitQuestion(Request $request)
 }
 
 
-    public function showCreateQuestionForm(Request $request)
-    {
-        $exam = Exam::findOrFail($request->exam_id);
-        $vetterComments = $exam->vetter_comments ?? [];
+public function showCreateQuestionForm(Request $request)
+{
+    $exam = Exam::findOrFail($request->exam_id);
+    $questions = is_array($exam->questions) ? $exam->questions : json_decode($exam->questions, true) ?? [];
+    $vetterComments = is_array($exam->vetter_comments) ? $exam->vetter_comments : json_decode($exam->vetter_comments, true) ?? [];
+    return view('SEMS.create-question', compact('exam', 'questions', 'vetterComments'));
+}
 
-        return view('SEMS.create-question', compact('exam', 'vetterComments'));
-    }
 
     /*
     |--------------------------------------------------------------------------

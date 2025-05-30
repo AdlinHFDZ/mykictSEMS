@@ -10,14 +10,22 @@ class AIController extends Controller
 public function ask(Request $request)
 {
     $prompt = $request->input('prompt');
-    $escapedPrompt = escapeshellarg($prompt);
 
+    $body = [
+        'model' => 'llama3',
+        'prompt' => $prompt,
+        'stream' => false,
+    ];
+
+    // Use Laravel HTTP client (best practice)
     try {
-        $output = shell_exec("php app/Helpers/ollama_proxy.php $escapedPrompt");
-        $json = json_decode($output, true);
+        $response = \Illuminate\Support\Facades\Http::timeout(20)
+            ->withHeaders(['Content-Type' => 'application/json'])
+            ->post('http://localhost:11434/api/generate', $body);
 
+        $json = $response->json();
         return response()->json([
-            'reply' => $json['response'] ?? 'No response from AI.'
+            'reply' => $json['response'] ?? 'No response from AI.',
         ]);
     } catch (\Exception $e) {
         return response()->json([
@@ -25,5 +33,6 @@ public function ask(Request $request)
         ], 500);
     }
 }
+
 
 }

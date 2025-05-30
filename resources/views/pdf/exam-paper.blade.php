@@ -111,57 +111,55 @@
 </div>
 <div style="page-break-after: always;"></div>
 
-{{-- QUESTIONS SECTION --}}
-<div class="section-title">Exam Questions</div>
 @foreach ($questions as $qIdx => $q)
     <div class="question">
-        <div class="main-q">
-            <p>
-                <strong style="margin-right:12px;">Question {{ $loop->iteration }}.</strong>
-                {!! strip_leading_blocks($q['question'] ?? '') !!}
-            </p>
-        </div>
+        {{-- MAIN QUESTION --}}
+        <table style="width:100%; margin-bottom:6px;">
+            <tr>
+                <td style="width:99%;">
+                    <strong style="margin-right:12px;">Question {{ $loop->iteration }}</strong>
+                    {!! strip_leading_blocks($q['question'] ?? '') !!}
+                </td>
+                @if (!empty($q['mark']))
+                <td style="text-align:right; white-space:nowrap; width:1%;">({{ $q['mark'] }} Marks)</td>
+                @endif
+            </tr>
+        </table>
 
-        {{-- Sub-questions --}}
+        {{-- SUB-QUESTIONS --}}
         @if (!empty($q['sub_questions']))
             @foreach ($q['sub_questions'] as $subQ)
-                <div class="sub-q" style="margin-left:24px;">
-                    <p style="margin: 0;">
-                        <strong style="margin-right:10px;">
-                            {{ chr(97 + $loop->index) }})
-                        </strong>
-                        {!! strip_leading_blocks($subQ['question'] ?? '') !!}
-                    </p>
-                    @if (!empty($subQ['mark']))
-                        <p class="marks" style="margin-left:32px;">({{ $subQ['mark'] }} Marks)</p>
-                    @endif
-
-                    {{-- Breakdowns --}}
-                    @if (!empty($subQ['breakdowns']))
-                        @foreach ($subQ['breakdowns'] as $bQ)
-                            <div class="breakdown-q" style="margin-left:32px;">
-                                <span>
-                                    <span style="margin-right:8px;">
-                                        <em>{{ $roman[$loop->index] }})</em>
-                                    </span>
+                <table style="width:97%; margin-left:24px; margin-bottom:2px;">
+                    <tr>
+                        <td style="width:97%;">
+                            <strong style="margin-right:10px;">{{ chr(97 + $loop->index) }})</strong>
+                            {!! strip_leading_blocks($subQ['question'] ?? '') !!}
+                        </td>
+                        @if (!empty($subQ['mark']))
+                        <td style="text-align:right; white-space:nowrap; width:3%;">({{ $subQ['mark'] }} Marks)</td>
+                        @endif
+                    </tr>
+                </table>
+                {{-- BREAKDOWNS --}}
+                @if (!empty($subQ['breakdowns']))
+                    @foreach ($subQ['breakdowns'] as $bQ)
+                        <table style="width:94%; margin-left:48px; margin-bottom:2px;">
+                            <tr>
+                                <td style="width:94%;">
+                                    <em style="margin-right:8px;">{{ $roman[$loop->index] }})</em>
                                     {!! strip_leading_blocks($bQ['question'] ?? '') !!}
-                                </span>
+                                </td>
                                 @if (!empty($bQ['mark']))
-                                    <span style="float: right;">({{ $bQ['mark'] }} Marks)</span>
+                                <td style="text-align:right; white-space:nowrap; width:6%;">({{ $bQ['mark'] }} Marks)</td>
                                 @endif
-                            </div>
-                        @endforeach
-                    @endif
-                </div>
+                            </tr>
+                        </table>
+                    @endforeach
+                @endif
             @endforeach
         @endif
 
-        {{-- If no sub-questions, show possible mark for main question --}}
-        @if (empty($q['sub_questions']) && !empty($q['mark']))
-            <p class="marks" style="margin-left:32px;">({{ $q['mark'] }} Marks)</p>
-        @endif
-
-        {{-- Total mark for this main question --}}
+        {{-- [Total: XX marks] --}}
         @php
             $totalMark = 0;
             if (!empty($q['sub_questions'])) {
@@ -177,9 +175,12 @@
                 $totalMark = (int)($q['mark'] ?? 0);
             }
         @endphp
-        <p style="text-align: right; font-weight: bold; margin-top: 5px;">[Total: {{ $totalMark }} marks]</p>
+        <p style="text-align: right; font-weight: bold; margin-top: 12px;">[Total: {{ $totalMark }} marks]</p>
     </div>
 @endforeach
+
+
+
 
 {{-- PAGE FOOTER --}}
 <script type="text/php">

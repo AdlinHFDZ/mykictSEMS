@@ -11,8 +11,6 @@
     </div>
 
     @php
-        $questions = json_decode($exam->questions, true) ?? [];
-        $vetterComments = is_array($exam->vetter_comments) ? $exam->vetter_comments : json_decode($exam->vetter_comments, true) ?? [];
         $tos = is_array($exam->tos) ? $exam->tos : json_decode($exam->tos, true) ?? [];
     @endphp
 
@@ -38,39 +36,34 @@
                         <hr class="mb-4">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label exam-details-label">Course Name</label>
-                                <input type="text" class="form-control exam-details-input" value="{{ $exam->course_name }}" disabled readonly>
+                                <label class="form-label">Course Name</label>
+                                <input type="text" class="form-control" value="{{ $exam->course_name }}" disabled readonly>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label exam-details-label">Course Code</label>
-                                <input type="text" class="form-control exam-details-input" value="{{ $exam->course_code }}" disabled readonly>
+                                <label class="form-label">Course Code</label>
+                                <input type="text" class="form-control" value="{{ $exam->course_code }}" disabled readonly>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label exam-details-label">Section</label>
-                                <input type="text" class="form-control exam-details-input" value="{{ $exam->section }}" disabled readonly>
+                                <label class="form-label">Section</label>
+                                <input type="text" class="form-control" value="{{ $exam->section }}" disabled readonly>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label exam-details-label">Coordinator</label>
-                                <input type="text" class="form-control exam-details-input"
+                                <label class="form-label">Coordinator</label>
+                                <input type="text" class="form-control"
                                     value="{{ $exam->ccAssignment && $exam->ccAssignment->user ? $exam->ccAssignment->user->name : 'N/A' }}"
                                     disabled readonly>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label exam-details-label">Vetters</label>
-                                <input
-                                    type="text"
-                                    class="form-control exam-details-input"
-                                    style="text-align: left !important; direction: ltr; padding-left: 18px;"
+                                <label class="form-label">Vetters</label>
+                                <input type="text" class="form-control"
                                     value="{{ $exam->vetterAssignments->count()
                                         ? $exam->vetterAssignments->pluck('user.name')->join(', ')
                                         : 'No vetters assigned.' }}"
-                                    disabled
-                                    readonly
-                                >
+                                    disabled readonly>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label exam-details-label">Semester</label>
-                                <input type="text" class="form-control exam-details-input" value="{{ $exam->semester->name ?? 'N/A' }}" disabled readonly>
+                                <label class="form-label">Semester</label>
+                                <input type="text" class="form-control" value="{{ $exam->semester->name ?? 'N/A' }}" disabled readonly>
                             </div>
                         </div>
                     </div>
@@ -150,113 +143,229 @@
             </div>
         </div>
 
-        {{-- Dynamic Question List --}}
-        <div id="question-container">
-            @foreach ($questions as $i => $question)
-                <div class="card mb-4 question-block">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Question {{ $i + 1 }}</h5>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="removeQuestion(this)">Remove Question</button>
-                    </div>
-                    <div class="card-body">
-                        {{-- Main Question --}}
-                        <div class="form-group row">
-                            <label class="col-form-label col-md-2">Main Question</label>
-                            <div class="col-md-10">
-                                <textarea class="form-control tinymce" name="questions[{{ $i }}][question]">{{ $question['question'] ?? '' }}</textarea>
+{{-- Dynamic Question List --}}
+<div id="question-container">
+@if (!empty($questions))
+    @foreach ($questions as $qIdx => $question)
+        @php
+            $mainQId = "question-main-{$qIdx}-" . \Illuminate\Support\Str::random(6);
+        @endphp
+        <div class="card mb-4 question-block">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Question {{ $qIdx + 1 }}</h5>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeQuestion(this)">Remove</button>
+            </div>
+            <div class="card-body">
+                <div class="form-group row mb-2 align-items-center">
+                    <label class="col-form-label col-md-2">Main Question</label>
+                    <div class="col-md-10">
+                        <textarea class="form-control tinymce mb-1"
+                            name="questions[{{ $qIdx }}][question]"
+                            id="{{ $mainQId }}"
+                            style="min-height: 64px">{!! $question['question'] ?? '' !!}</textarea>
+                        <input type="number"
+                            name="questions[{{ $qIdx }}][mark]"
+                            placeholder="Mark"
+                            value="{{ $question['mark'] ?? '' }}"
+                            class="form-control form-control-sm mt-2"
+                            style="max-width: 120px;">
+                        <div class="d-flex flex-row align-items-center gap-2 mt-1">
+                            {{-- AI dropdown and Bloom fields --}}
+                            <div class="btn-group btn-group-sm" role="group" style="margin-left: 8px;">
+                                <button id="btnGroupDrop{{ $mainQId }}" type="button" class="btn btn-outline-dark btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    SEMS AI
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="btnGroupDrop{{ $mainQId }}">
+                                    <li><a class="dropdown-item ask-ai-btn" href="#" data-target="{{ $mainQId }}">Ask AI for Suggestion</a></li>
+                                    <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="{{ $mainQId }}">Improve Clarity</a></li>
+                                    <li><a class="dropdown-item answer-ai-btn" href="#" data-target="{{ $mainQId }}">Generate Answer</a></li>
+                                    <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="{{ $mainQId }}">Check Similarity</a></li>
+                                </ul>
                             </div>
-                            <div class="dropdown mb-2">
-  <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-      SEMS AI
-  </button>
-  <ul class="dropdown-menu">
-      <li><a class="dropdown-item ask-ai-btn" href="#" data-target="TEXTAREA_ID">Ask AI for Suggestion</a></li>
-      <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="TEXTAREA_ID">Improve Clarity</a></li>
-      <li><a class="dropdown-item answer-ai-btn" href="#" data-target="TEXTAREA_ID">Generate Answer</a></li>
-      <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="TEXTAREA_ID">Check Similarity</a></li>
-  </ul>
-</div>
-
-                        </div>
-
-                        {{-- Sub-Questions --}}
-                        <div class="mt-4">
-                            <h6>Sub-Questions</h6>
-                            <div id="sub-questions-{{ $i }}">
-                                @php $subs = $question['sub_questions'] ?? []; @endphp
-                                @foreach ($subs as $subKey => $sub)
-                                    <div class="card border mt-3 sub-question-block">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between">
-                                                <label><strong>{{ $subKey }})</strong></label>
-                                                <button type="button" class="btn btn-sm btn-danger" onclick="removeSubQuestion(this)">Remove Sub-question</button>
-                                            </div>
-                                            <textarea class="form-control tinymce mb-2" name="questions[{{ $i }}][sub_questions][{{ $subKey }}][question]">{{ $sub['question'] ?? '' }}</textarea>
-                                            <input type="number" name="questions[{{ $i }}][sub_questions][{{ $subKey }}][mark]" placeholder="Mark" class="form-control mb-2" style="max-width: 120px" value="{{ $sub['mark'] ?? '' }}">
-                                            <textarea class="form-control tinymce mb-3" name="questions[{{ $i }}][sub_questions][{{ $subKey }}][answer]">{{ $sub['answer'] ?? '' }}</textarea>
-                                            <textarea class="form-control tinymce mb-2" name="questions[${questionIndex}][sub_questions][${subLabel}][question]" id="${uniqueId}-q"></textarea>
-<div class="dropdown mb-2">
-    <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-        SEMS AI
-    </button>
-    <ul class="dropdown-menu">
-        <li><a class="dropdown-item ask-ai-btn" href="#" data-target="${uniqueId}-q">Ask AI for Suggestion</a></li>
-        <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="${uniqueId}-q">Improve Clarity</a></li>
-        <li><a class="dropdown-item answer-ai-btn" href="#" data-target="${uniqueId}-q">Generate Answer</a></li>
-        <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="${uniqueId}-q">Check Similarity</a></li>
-    </ul>
-</div>
-
-                                            {{-- Breakdown --}}
-                                            <h6 class="text-muted">Breakdowns:</h6>
-                                            <div id="breakdowns-{{ $i }}-{{ $subKey }}">
-                                                @php $breaks = $sub['breakdowns'] ?? []; @endphp
-                                                @foreach ($breaks as $bKey => $break)
-                                                    <div class="mb-2 ms-3 border p-2 rounded breakdown-block">
-                                                        <div class="d-flex justify-content-between">
-                                                            <label><em>{{ $bKey }})</em></label>
-                                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeBreakdown(this)">Remove Breakdown</button>
-                                                        </div>
-                                                        <textarea class="form-control tinymce mb-1" name="questions[{{ $i }}][sub_questions][{{ $subKey }}][breakdowns][{{ $bKey }}][question]">{{ $break['question'] ?? '' }}</textarea>
-                                                        <input type="number" name="questions[{{ $i }}][sub_questions][{{ $subKey }}][breakdowns][{{ $bKey }}][mark]" placeholder="Mark" class="form-control mb-1" style="max-width: 120px" value="{{ $break['mark'] ?? '' }}">
-                                                        <textarea class="form-control tinymce" name="questions[{{ $i }}][sub_questions][{{ $subKey }}][breakdowns][{{ $bKey }}][answer]">{{ $break['answer'] ?? '' }}</textarea>
-                                                    </div>
-                                                    <div class="dropdown mb-2">
-  <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-      SEMS AI
-  </button>
-  <ul class="dropdown-menu">
-      <li><a class="dropdown-item ask-ai-btn" href="#" data-target="TEXTAREA_ID">Ask AI for Suggestion</a></li>
-      <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="TEXTAREA_ID">Improve Clarity</a></li>
-      <li><a class="dropdown-item answer-ai-btn" href="#" data-target="TEXTAREA_ID">Generate Answer</a></li>
-      <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="TEXTAREA_ID">Check Similarity</a></li>
-  </ul>
-</div>
-
-                                                @endforeach
-                                            </div>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addBreakdown({{ $i }}, '{{ $subKey }}')">+ Add Breakdown</button>
-                                        </div>
-                                    </div>
-                                @endforeach
+                            <div class="d-flex gap-2 align-items-center bloom-taxonomy-group" style="margin-left:4px;">
+                                <input type="text" class="form-control form-control-sm bloom-topic"
+                                    placeholder="Topic"
+                                    style="max-width:120px;"
+                                    value="{{ $question['bloom_topic'] ?? '' }}">
+                                <select class="form-select form-select-sm bloom-domain"
+                                    style="max-width:90px;" onchange="updateBloomLevels(this)">
+                                    <option value="">Domain</option>
+                                    <option value="Cognitive" {{ ($question['bloom_domain'] ?? '') == 'Cognitive' ? 'selected' : '' }}>Cognitive</option>
+                                    <option value="Affective" {{ ($question['bloom_domain'] ?? '') == 'Affective' ? 'selected' : '' }}>Affective</option>
+                                    <option value="Psychomotor" {{ ($question['bloom_domain'] ?? '') == 'Psychomotor' ? 'selected' : '' }}>Psychomotor</option>
+                                </select>
+                                <select class="form-select form-select-sm bloom-level" style="max-width:100px;">
+                                    <option value="">Level</option>
+                                    {{-- Fill by JS --}}
+                                </select>
+                                <button type="button" class="btn btn-sm btn-outline-primary" title="AI Suggestion"
+                                    onclick="generateBloomsQuestion(this, '{{ $mainQId }}')">
+                                    <i class="fas fa-magic"></i>
+                                </button>
                             </div>
-                            <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addSubQuestion({{ $i }})">+ Add Sub-question</button>
                         </div>
+                        {{-- Vetter Comments --}}
+                        @if (!empty($vetterComments[$qIdx]))
+                            <div class="mt-2 border rounded p-2 bg-light">
+                                <strong>Vetter Comments:</strong>
+                                <ul>
+                                    @foreach ($vetterComments[$qIdx] as $comment)
+                                        <li>
+                                            <span class="text-muted">{{ $comment['name'] ?? 'Vetter' }} ({{ $comment['timestamp'] ?? '' }}):</span>
+                                            <br>
+                                            {{ $comment['comment'] }}
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                     </div>
                 </div>
-            @endforeach
-        </div>
-        <div class="text-center">
-            <button type="button" class="btn btn-success mb-4" onclick="addQuestion()">+ Add Question</button>
-        </div>
-
-        {{-- Action Buttons --}}
-        <div class="text-center mb-5">
-            <button type="submit" class="btn btn-primary">Send to Department</button>
-            <button type="submit" name="action" value="draft" class="btn btn-outline-secondary">Save as Draft</button>
-        </div>
-    </form>
+                {{-- Sub-Questions --}}
+                <div class="mt-3">
+                    <h6 class="mb-2" style="font-size:1rem;">Sub-Questions</h6>
+                    <div id="sub-questions-{{ $qIdx }}">
+                        @if (!empty($question['sub_questions']))
+                            @foreach ($question['sub_questions'] as $subLabel => $subQ)
+                                @php
+                                    $uniqueId = "sub-{$qIdx}-{$subLabel}-{$loop->index}";
+                                    $qEditorId = "{$uniqueId}-q";
+                                @endphp
+                                <div class="card border mt-3 sub-question-block">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <label><strong>{{ $subLabel }})</strong></label>
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="removeSubQuestion(this)">Remove Sub-question</button>
+                                        </div>
+                                        <textarea class="form-control tinymce mb-2"
+                                            name="questions[{{ $qIdx }}][sub_questions][{{ $subLabel }}][question]"
+                                            id="{{ $qEditorId }}">{{ $subQ['question'] ?? '' }}</textarea>
+<div class="d-flex flex-wrap align-items-center gap-2 mt-1 bloom-taxonomy-group">
+    <input type="text" class="form-control form-control-sm bloom-topic"
+        placeholder="Topic"
+        style="max-width:120px;"
+        value="{{ $subQ['bloom_topic'] ?? '' }}">
+    <select class="form-select form-select-sm bloom-domain"
+        style="max-width:110px;" onchange="updateBloomLevels(this)">
+        <option value="">Domain</option>
+        <option value="Cognitive" {{ ($subQ['bloom_domain'] ?? '') == 'Cognitive' ? 'selected' : '' }}>Cognitive</option>
+        <option value="Affective" {{ ($subQ['bloom_domain'] ?? '') == 'Affective' ? 'selected' : '' }}>Affective</option>
+        <option value="Psychomotor" {{ ($subQ['bloom_domain'] ?? '') == 'Psychomotor' ? 'selected' : '' }}>Psychomotor</option>
+    </select>
+    <select class="form-select form-select-sm bloom-level" style="max-width:110px;">
+        <option value="">Level</option>
+    </select>
+    <button type="button" class="btn btn-sm btn-outline-primary" title="AI Suggestion"
+        onclick="generateBloomsQuestion(this, '{{ $qEditorId }}')">
+        <i class="fas fa-magic"></i>
+    </button>
+    <div class="btn-group btn-group-sm" role="group" style="margin-left: 8px;">
+        <button id="btnGroupDrop{{ $qEditorId }}" type="button" class="btn btn-outline-dark btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            SEMS AI
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="btnGroupDrop{{ $qEditorId }}">
+            <li><a class="dropdown-item ask-ai-btn" href="#" data-target="{{ $qEditorId }}">Ask AI for Suggestion</a></li>
+            <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="{{ $qEditorId }}">Improve Clarity</a></li>
+            <li><a class="dropdown-item answer-ai-btn" href="#" data-target="{{ $qEditorId }}">Generate Answer</a></li>
+            <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="{{ $qEditorId }}">Check Similarity</a></li>
+        </ul>
+    </div>
 </div>
+
+                                        <input type="number"
+                                            name="questions[{{ $qIdx }}][sub_questions][{{ $subLabel }}][mark]"
+                                            value="{{ $subQ['mark'] ?? '' }}"
+                                            placeholder="Mark"
+                                            class="form-control mb-2"
+                                            style="max-width: 120px;">
+                                        <textarea class="form-control tinymce mb-3"
+                                            name="questions[{{ $qIdx }}][sub_questions][{{ $subLabel }}][answer]">{{ $subQ['answer'] ?? '' }}</textarea>
+
+                                        {{-- Breakdown Section --}}
+                                        @if (!empty($subQ['breakdowns']))
+                                            @foreach ($subQ['breakdowns'] as $breakdownLabel => $breakdown)
+                                                @php
+                                                    $breakdownEditorId = "break-{$qIdx}-{$subLabel}-{$breakdownLabel}-{$loop->index}-q";
+                                                @endphp
+                                                <div class="mb-2 ms-3 border p-2 rounded breakdown-block">
+                                                    <div class="d-flex justify-content-between">
+                                                        <label><em>{{ $breakdownLabel }})</em></label>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeBreakdown(this)">Remove Breakdown</button>
+                                                    </div>
+                                                    <textarea class="form-control tinymce mb-1"
+                                                        id="{{ $breakdownEditorId }}"
+                                                        name="questions[{{ $qIdx }}][sub_questions][{{ $subLabel }}][breakdowns][{{ $breakdownLabel }}][question]">{{ $breakdown['question'] ?? '' }}</textarea>
+<div class="d-flex flex-wrap align-items-center gap-2 mt-1 bloom-taxonomy-group">
+    <input type="text"
+        class="form-control form-control-sm bloom-topic"
+        placeholder="Topic"
+        style="max-width:120px;"
+        value="{{ $breakdown['bloom_topic'] ?? '' }}">
+    <select class="form-select form-select-sm bloom-domain"
+        style="max-width:110px;"
+        onchange="updateBloomLevels(this)">
+        <option value="">Domain</option>
+        <option value="Cognitive" {{ ($breakdown['bloom_domain'] ?? '') == 'Cognitive' ? 'selected' : '' }}>Cognitive</option>
+        <option value="Affective" {{ ($breakdown['bloom_domain'] ?? '') == 'Affective' ? 'selected' : '' }}>Affective</option>
+        <option value="Psychomotor" {{ ($breakdown['bloom_domain'] ?? '') == 'Psychomotor' ? 'selected' : '' }}>Psychomotor</option>
+    </select>
+    <select class="form-select form-select-sm bloom-level" style="max-width:110px;">
+        <option value="">Level</option>
+        {{-- Let JS populate --}}
+    </select>
+    <button type="button" class="btn btn-sm btn-outline-primary" title="AI Suggestion"
+        onclick="generateBloomsQuestion(this, '{{ $breakdownEditorId }}')">
+        <i class="fas fa-magic"></i>
+    </button>
+    <div class="btn-group btn-group-sm" role="group" style="margin-left: 8px;">
+        <button id="btnGroupDrop{{ $breakdownEditorId }}" type="button" class="btn btn-outline-dark btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            SEMS AI
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="btnGroupDrop{{ $breakdownEditorId }}">
+            <li><a class="dropdown-item ask-ai-btn" href="#" data-target="{{ $breakdownEditorId }}">Ask AI for Suggestion</a></li>
+            <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="{{ $breakdownEditorId }}">Improve Clarity</a></li>
+            <li><a class="dropdown-item answer-ai-btn" href="#" data-target="{{ $breakdownEditorId }}">Generate Answer</a></li>
+            <li><a class="dropdown-item similarity-ai-btn" href="#" data-target="{{ $breakdownEditorId }}">Check Similarity</a></li>
+        </ul>
+    </div>
+</div>
+
+                                                    <input type="number"
+                                                        class="form-control mb-1"
+                                                        name="questions[{{ $qIdx }}][sub_questions][{{ $subLabel }}][breakdowns][{{ $breakdownLabel }}][mark]"
+                                                        value="{{ $breakdown['mark'] ?? '' }}"
+                                                        placeholder="Mark" min="0" style="max-width: 120px;">
+                                                    <textarea class="form-control tinymce"
+                                                        name="questions[{{ $qIdx }}][sub_questions][{{ $subLabel }}][breakdowns][{{ $breakdownLabel }}][answer]">{{ $breakdown['answer'] ?? '' }}</textarea>
+                                                </div>
+                                            @endforeach
+                                        @endif
+
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addBreakdown({{ $qIdx }}, '{{ $subLabel }}')">+ Add Breakdown</button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endif
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addSubQuestion({{ $qIdx }})">+ Add Sub-question</button>
+                </div>
+            </div>
+        </div>
+    @endforeach
+@endif
+</div>
+
+<div class="text-center">
+    <button type="button" class="btn btn-success mb-4" onclick="addQuestion()">+ Add Question</button>
+</div>
+
+{{-- Action Buttons --}}
+<div class="text-center mb-5">
+    <button type="submit" class="btn btn-primary">Send to Department</button>
+    <button type="submit" name="action" value="draft" class="btn btn-outline-secondary">Save as Draft</button>
+</div>
+
+</form>
 
 <!-- AI Modal -->
 <div class="modal fade" id="aiModal" tabindex="-1" aria-labelledby="aiModalLabel" aria-hidden="true">
@@ -308,7 +417,7 @@ function initAllTinyMCE() {
   });
 }
 
-/** AI dropdown and click handlers */
+
 function attachAIListeners() {
   document.body.addEventListener('click', function (e) {
     if (e.target.classList.contains('ask-ai-btn')) {
@@ -390,7 +499,6 @@ async function runSimilarityCheck(button) {
 function copyAISuggestion() {
   navigator.clipboard.writeText(lastAISuggestion).then(() => alert('Copied to clipboard.'));
 }
-
 function insertAISuggestion() {
   if (lastEditorId && tinymce.get(lastEditorId)) {
     tinymce.get(lastEditorId).setContent(lastAISuggestion);
@@ -400,14 +508,13 @@ function insertAISuggestion() {
   }
 }
 
-/** Render the AI Dropdown for a given textarea id */
 function renderAIDropdown(editorId) {
   return `
-    <div class="dropdown mb-2">
-      <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+    <div class="btn-group btn-group-sm" role="group" style="margin-left: 8px;">
+      <button id="btnGroupDrop${editorId}" type="button" class="btn btn-outline-dark btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
         SEMS AI
       </button>
-      <ul class="dropdown-menu">
+      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="btnGroupDrop${editorId}">
         <li><a class="dropdown-item ask-ai-btn" href="#" data-target="${editorId}">Ask AI for Suggestion</a></li>
         <li><a class="dropdown-item clarify-ai-btn" href="#" data-target="${editorId}">Improve Clarity</a></li>
         <li><a class="dropdown-item answer-ai-btn" href="#" data-target="${editorId}">Generate Answer</a></li>
@@ -416,41 +523,58 @@ function renderAIDropdown(editorId) {
     </div>`;
 }
 
-// --- Dynamic Adders ---
 
-// Adds a new main question card at the end
+// -- Dynamic Card Adders --
+
 function addQuestion() {
   const questionCount = document.querySelectorAll('.question-block').length;
   const container = document.getElementById('question-container');
   const qIdx = questionCount;
-  const mainQId = `question-main-${qIdx}`;
+  const mainQId = `question-main-${qIdx}-${Date.now()}`;
   const block = document.createElement('div');
   block.className = 'card mb-4 question-block';
-  block.innerHTML = `
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="card-title mb-0">Question ${qIdx + 1}</h5>
-      <button type="button" class="btn btn-sm btn-danger" onclick="removeQuestion(this)">Remove Question</button>
-    </div>
-    <div class="card-body">
-      <div class="form-group row">
-        <label class="col-form-label col-md-2">Main Question</label>
-        <div class="col-md-10">
-          <textarea class="form-control tinymce" name="questions[${qIdx}][question]" id="${mainQId}"></textarea>
+block.innerHTML = `
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="card-title mb-0">Question ${qIdx + 1}</h5>
+    <button type="button" class="btn btn-sm btn-danger" onclick="removeQuestion(this)">Remove</button>
+  </div>
+  <div class="card-body">
+    <div class="form-group row mb-2 align-items-center">
+      <label class="col-form-label col-md-2">Main Question</label>
+      <div class="col-md-10">
+        <textarea class="form-control tinymce mb-1" name="questions[${qIdx}][question]" id="${mainQId}" style="min-height: 64px"></textarea>
+        <input type="number" name="questions[${qIdx}][mark]" placeholder="Mark" class="form-control form-control-sm mt-2" style="max-width: 120px;">
+        <div class="d-flex flex-row align-items-center gap-2 mt-1">
           ${renderAIDropdown(mainQId)}
+          <div class="d-flex gap-2 align-items-center bloom-taxonomy-group" style="margin-left:4px;">
+            <input type="text" class="form-control form-control-sm bloom-topic" placeholder="Topic" style="max-width:120px;">
+            <select class="form-select form-select-sm bloom-domain" style="max-width:90px;" onchange="updateBloomLevels(this)">
+              <option value="">Domain</option>
+              <option value="Cognitive">Cognitive</option>
+              <option value="Affective">Affective</option>
+              <option value="Psychomotor">Psychomotor</option>
+            </select>
+            <select class="form-select form-select-sm bloom-level" style="max-width:100px;">
+              <option value="">Level</option>
+            </select>
+            <button type="button" class="btn btn-sm btn-outline-primary" title="AI Suggestion" onclick="generateBloomsQuestion(this, ${qIdx})">
+              <i class="fas fa-magic"></i>
+            </button>
+          </div>
         </div>
       </div>
-      <div class="mt-4">
-        <h6>Sub-Questions</h6>
-        <div id="sub-questions-${qIdx}"></div>
-        <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addSubQuestion(${qIdx})">+ Add Sub-question</button>
-      </div>
     </div>
-  `;
+    <div class="mt-3">
+      <h6 class="mb-2" style="font-size:1rem;">Sub-Questions</h6>
+      <div id="sub-questions-${qIdx}"></div>
+      <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addSubQuestion(${qIdx})">+ Add Sub-question</button>
+    </div>
+  </div>
+`;
   container.appendChild(block);
   initAllTinyMCE();
 }
 
-// Adds a sub-question card to a given question index
 function addSubQuestion(questionIndex) {
   const container = document.getElementById(`sub-questions-${questionIndex}`);
   if (!container) return;
@@ -461,26 +585,40 @@ function addSubQuestion(questionIndex) {
   const qEditorId = `${uniqueId}-q`;
   const block = document.createElement('div');
   block.className = 'card border mt-3 sub-question-block';
-  block.innerHTML = `
-    <div class="card-body">
-      <div class="d-flex justify-content-between">
-        <label><strong>${subLabel})</strong></label>
-        <button type="button" class="btn btn-sm btn-danger" onclick="removeSubQuestion(this)">Remove Sub-question</button>
-      </div>
-      <textarea class="form-control tinymce mb-2" name="questions[${questionIndex}][sub_questions][${subLabel}][question]" id="${qEditorId}"></textarea>
-      ${renderAIDropdown(qEditorId)}
-      <input type="number" name="questions[${questionIndex}][sub_questions][${subLabel}][mark]" placeholder="Mark" class="form-control mb-2" style="max-width: 120px">
-      <textarea class="form-control tinymce mb-3" name="questions[${questionIndex}][sub_questions][${subLabel}][answer]"></textarea>
-      <h6 class="text-muted">Breakdowns:</h6>
-      <div id="breakdowns-${questionIndex}-${subLabel}"></div>
-      <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addBreakdown(${questionIndex}, '${subLabel}')">+ Add Breakdown</button>
+block.innerHTML = `
+  <div class="card-body">
+    <div class="d-flex justify-content-between">
+      <label><strong>${subLabel})</strong></label>
+      <button type="button" class="btn btn-sm btn-danger" onclick="removeSubQuestion(this)">Remove Sub-question</button>
     </div>
-  `;
+    <textarea class="form-control tinymce mb-2" name="questions[${questionIndex}][sub_questions][${subLabel}][question]" id="${qEditorId}"></textarea>
+<div class="d-flex flex-wrap align-items-center gap-2 mt-1 bloom-taxonomy-group">
+      <input type="text" class="form-control form-control-sm bloom-topic" placeholder="Topic" style="max-width:120px;">
+      <select class="form-select form-select-sm bloom-domain" style="max-width:110px;" onchange="updateBloomLevels(this)">
+        <option value="">Domain</option>
+        <option value="Cognitive">Cognitive</option>
+        <option value="Affective">Affective</option>
+        <option value="Psychomotor">Psychomotor</option>
+      </select>
+      <select class="form-select form-select-sm bloom-level" style="max-width:110px;">
+        <option value="">Level</option>
+      </select>
+      <button type="button" class="btn btn-sm btn-outline-primary" title="AI Suggestion" onclick="generateBloomsQuestion(this, '${qEditorId}')">
+        <i class="fas fa-magic"></i>
+      </button>
+      ${renderAIDropdown(qEditorId)}
+    </div>
+    <input type="number" name="questions[${questionIndex}][sub_questions][${subLabel}][mark]" placeholder="Mark" class="form-control mb-2" style="max-width: 120px">
+    <textarea class="form-control tinymce mb-3" name="questions[${questionIndex}][sub_questions][${subLabel}][answer]"></textarea>
+    <h6 class="text-muted">Breakdowns:</h6>
+    <div id="breakdowns-${questionIndex}-${subLabel}"></div>
+    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addBreakdown(${questionIndex}, '${subLabel}')">+ Add Breakdown</button>
+  </div>
+`;
   container.appendChild(block);
   initAllTinyMCE();
 }
 
-// Adds a breakdown block under a sub-question
 function addBreakdown(questionIndex, subKey) {
   const containerId = `breakdowns-${questionIndex}-${subKey}`;
   const container = document.getElementById(containerId);
@@ -492,31 +630,43 @@ function addBreakdown(questionIndex, subKey) {
   const qEditorId = `${uniqueId}-q`;
   const block = document.createElement('div');
   block.className = 'mb-2 ms-3 border p-2 rounded breakdown-block';
-  block.innerHTML = `
-    <div class="d-flex justify-content-between">
-      <label><em>${breakdownLabel})</em></label>
-      <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeBreakdown(this)">Remove Breakdown</button>
-    </div>
-    <textarea class="form-control tinymce mb-1" id="${qEditorId}" name="questions[${questionIndex}][sub_questions][${subKey}][breakdowns][${breakdownLabel}][question]"></textarea>
+block.innerHTML = `
+  <div class="d-flex justify-content-between">
+    <label><em>${breakdownLabel})</em></label>
+    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeBreakdown(this)">Remove Breakdown</button>
+  </div>
+  <textarea class="form-control tinymce mb-1" id="${qEditorId}" name="questions[${questionIndex}][sub_questions][${subKey}][breakdowns][${breakdownLabel}][question]"></textarea>
+ <div class="d-flex flex-wrap align-items-center gap-2 mt-1 bloom-taxonomy-group">
+    <input type="text" class="form-control form-control-sm bloom-topic" placeholder="Topic" style="max-width:120px;">
+    <select class="form-select form-select-sm bloom-domain" style="max-width:110px;" onchange="updateBloomLevels(this)">
+      <option value="">Domain</option>
+      <option value="Cognitive">Cognitive</option>
+      <option value="Affective">Affective</option>
+      <option value="Psychomotor">Psychomotor</option>
+    </select>
+    <select class="form-select form-select-sm bloom-level" style="max-width:110px;">
+      <option value="">Level</option>
+    </select>
+    <button type="button" class="btn btn-sm btn-outline-primary" title="AI Suggestion" onclick="generateBloomsQuestion(this, '${qEditorId}')">
+      <i class="fas fa-magic"></i>
+    </button>
     ${renderAIDropdown(qEditorId)}
-    <input type="number" class="form-control mb-1" name="questions[${questionIndex}][sub_questions][${subKey}][breakdowns][${breakdownLabel}][mark]" placeholder="Mark" min="0" style="max-width: 120px;">
-    <textarea class="form-control tinymce" name="questions[${questionIndex}][sub_questions][${subKey}][breakdowns][${breakdownLabel}][answer]"></textarea>
-  `;
+  </div>
+  <input type="number" class="form-control mb-1" name="questions[${questionIndex}][sub_questions][${subKey}][breakdowns][${breakdownLabel}][mark]" placeholder="Mark" min="0" style="max-width: 120px;">
+  <textarea class="form-control tinymce" name="questions[${questionIndex}][sub_questions][${subKey}][breakdowns][${breakdownLabel}][answer]"></textarea>
+`;
   container.appendChild(block);
   initAllTinyMCE();
 }
 
-// Remove a main question card
 function removeQuestion(button) {
   const block = button.closest('.question-block');
   if (block) block.remove();
 }
-// Remove a sub-question card
 function removeSubQuestion(button) {
   const subCard = button.closest('.sub-question-block');
   if (subCard) subCard.remove();
 }
-// Remove a breakdown card
 function removeBreakdown(button) {
   const breakdownBlock = button.closest('.breakdown-block');
   if (breakdownBlock) breakdownBlock.remove();
@@ -526,5 +676,105 @@ document.addEventListener('DOMContentLoaded', function () {
   initAllTinyMCE();
   attachAIListeners();
 });
+
+const bloomLevels = {
+  Cognitive: [
+    { code: "C1", label: "Remember" },
+    { code: "C2", label: "Understand" },
+    { code: "C3", label: "Apply" },
+    { code: "C4", label: "Analyse" },
+    { code: "C5", label: "Evaluate" },
+    { code: "C6", label: "Create" }
+  ],
+  Affective: [
+    { code: "A1", label: "Receiving Phenomena" },
+    { code: "A2", label: "Responding to Phenomena" },
+    { code: "A3", label: "Valuing" },
+    { code: "A4", label: "Organising Values" },
+    { code: "A5", label: "Internalising Values" }
+  ],
+  Psychomotor: [
+    { code: "P1", label: "Perception" },
+    { code: "P2", label: "Set" },
+    { code: "P3", label: "Guided Response" },
+    { code: "P4", label: "Mechanism" },
+    { code: "P5", label: "Complex Overt Response" },
+    { code: "P6", label: "Adaption" },
+    { code: "P7", label: "Origination" }
+  ]
+};
+
+function updateBloomLevels(domainSelect) {
+  const domain = domainSelect.value;
+  const group = domainSelect.closest('.bloom-taxonomy-group');
+  const levelSelect = group.querySelector('.bloom-level');
+  let options = '<option value="">Level</option>';
+  if (bloomLevels[domain]) {
+    bloomLevels[domain].forEach(level => {
+      options += `<option value="${level.code} - ${level.label}">${level.code} - ${level.label}</option>`;
+    });
+  }
+  levelSelect.innerHTML = options;
+}
+
+function generateBloomsQuestion(button, editorId) {
+  const group = button.closest('.bloom-taxonomy-group');
+  const topic = group.querySelector('.bloom-topic').value.trim();
+  const domain = group.querySelector('.bloom-domain').value;
+  const level = group.querySelector('.bloom-level').value;
+
+  if (!topic || !domain || !level) {
+    alert('Please fill in the topic, domain, and level.');
+    return;
+  }
+
+  const [levelCode, levelName] = level.split(' - ');
+  const prompt = `Generate an exam question on the topic of "${topic}" at the ${levelCode} (${levelName}) level in the ${domain} domain of Bloom's Taxonomy.`;
+
+  const editor = tinymce.get(editorId);
+  if (!editor) {
+    alert('Editor not found.');
+    return;
+  }
+
+  button.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+
+  fetch('http://127.0.0.1:11434/api/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'llama3',
+      prompt: prompt,
+      stream: false
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    // Set for modal
+    lastEditorId = editorId;
+    lastAISuggestion = data.response || '';
+    document.getElementById('aiModalBody').innerText = data.response || '';
+    // Show the modal
+    new bootstrap.Modal(document.getElementById('aiModal')).show();
+    button.innerHTML = `<i class="fas fa-magic"></i>`;
+  })
+  .catch(() => {
+    alert('AI request failed');
+    button.innerHTML = `<i class="fas fa-magic"></i>`;
+  });
+}
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  initAllTinyMCE();
+  attachAIListeners();
+
+  // Populate Bloom Level dropdowns for all pre-filled domains
+  document.querySelectorAll('.bloom-domain').forEach(function(domainSelect){
+      if (domainSelect.value) updateBloomLevels(domainSelect);
+  });
+});
+
+
 </script>
 @endpush
