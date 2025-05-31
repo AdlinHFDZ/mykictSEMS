@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\PDFController;
 use App\Http\Controllers\CourseController;
@@ -9,15 +8,15 @@ use App\Http\Controllers\SemesterController;
 
 /*
 |--------------------------------------------------------------------------
-| Public Route
+| Public Routes
 |--------------------------------------------------------------------------
 */
-// Shows your welcome portal at the root URL
+// Welcome page at root URL
 Route::get('/', function () {
-    return view('welcome'); // Loads resources/views/welcome.blade.php
+    return view('welcome');
 });
 
-// Shows the login page at /login
+// Login page
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
@@ -33,13 +32,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/SEMS-dashboard', fn() => view('SEMS.SEMS-dashboard'))->name('SEMS.dashboard');
 
     /*
-|--------------------------------------------------------------------------
-| AI ROUTING
-|--------------------------------------------------------------------------
-*/
-
-Route::post('/ask-ai', [App\Http\Controllers\AIController::class, 'ask']);
-Route::post('/exam/check-similarity', [ExamController::class, 'checkSimilarity'])->name('exam.check-similarity');
+    |--------------------------------------------------------------------------
+    | AI Routing
+    |--------------------------------------------------------------------------
+    */
+    Route::post('/ask-ai', [App\Http\Controllers\AIController::class, 'ask']);
+    Route::post('/exam/check-similarity', [ExamController::class, 'checkSimilarity'])->name('exam.check-similarity');
 
     /*
     |--------------------------------------------------------------------------
@@ -112,15 +110,23 @@ Route::post('/exam/check-similarity', [ExamController::class, 'checkSimilarity']
 
 /*
 |--------------------------------------------------------------------------
-| Jetstream/Breeze Dashboards (Optional Admin System)
+| Force Dashboard to SEMS Dashboard Redirect
 |--------------------------------------------------------------------------
 */
+Route::get('/dashboard', function () {
+    return redirect('/SEMS-dashboard');
+})->middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+])->name('dashboard');
+
+// (Optional: You can keep the role dashboards below, but /dashboard now always redirects to /SEMS-dashboard)
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::view('/dashboard', 'admin/welcome-dashboard')->name('dashboard');
     Route::view('/admin-dashboard', 'admin/admin-dashboard')->name('admin.dashboard');
     Route::view('/teacher-dashboard', 'admin/teacher-dashboard')->name('teacher.dashboard');
     Route::view('/student-dashboard', 'admin/student-dashboard')->name('student.dashboard');
