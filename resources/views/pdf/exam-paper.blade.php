@@ -3,39 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <title>Exam Paper</title>
-    <style>
-        @page { margin: 100px 50px 80px; }
-        body, h2, h3, h4, table, td, th, strong, p {
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 12px;
-            color: #000 !important;
-            line-height: 1.5;
-            font-weight: normal;
-        }
-        b, strong { font-weight: bold !important; }
-        i, em { font-style: italic !important; }
-        .cover-logo { text-align: center; margin-bottom: 16px; }
-        .cover-logo img { height: 110px; margin-bottom: 8px; }
-        h2, h3, h4 { text-align: center; font-weight: bold; margin: 0; }
-        h2 { font-size: 20px; margin-bottom: 5px; letter-spacing: 1px; }
-        h3 { font-size: 15px; margin-bottom: 2px; letter-spacing: 0.2px; }
-        h4 { font-size: 13px; margin-bottom: 2px; letter-spacing: 0.1px; }
+<style>
+    @page { margin: 100px 50px 80px; }
+    body, h2, h3, h4, table, td, th, strong, p {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        color: #000 !important;
+        line-height: 1.5;
+        font-weight: normal;
+    }
+    b, strong { font-weight: bold !important; }
+    i, em { font-style: italic !important; }
+    .cover-logo { text-align: center; margin-bottom: 16px; }
+    .cover-logo img { height: 110px; margin-bottom: 8px; }
+    h2, h3, h4 { text-align: center; font-weight: bold; margin: 0; }
+    h2 { font-size: 20px; margin-bottom: 5px; letter-spacing: 1px; }
+    h3 { font-size: 15px; margin-bottom: 2px; letter-spacing: 0.2px; }
+    h4 { font-size: 13px; margin-bottom: 2px; letter-spacing: 0.1px; }
 
-        .info-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; border: none; }
-        .info-table td { border: none !important; padding: 6px 2px; vertical-align: top; }
-        .info-table td strong { display: inline-block; min-width: 100px; }
-        .instructions, .warning-block { margin-top: 20px; text-align: center; }
-        .instructions u { font-weight: bold; display: inline-block; margin-bottom: 8px; }
-        .instructions p { margin: 3px 0; }
-        .warning-block { font-weight: bold; font-size: 12px; color: #aa2e00; margin: 30px auto 10px auto; max-width: 90%; }
-        .section-title { font-size: 16px; font-weight: bold; margin: 40px 0 20px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
-        .question { margin-bottom: 30px; }
-        .main-q { margin-bottom: 10px; }
-        .sub-q { margin-left: 28px; margin-bottom: 5px; }
-        .breakdown-q { margin-left: 56px; margin-bottom: 2px; }
-        .marks { text-align: right; margin: 0 0 8px 0; }
-        .question img {width: 100% !important;height: auto !important;max-width: 100% !important;display: block;margin: 0 auto 10px auto;}
-    </style>
+.info-table {
+    width: 90%;
+    margin: 0 auto 28px auto;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+.info-table td {
+    border: none !important;
+    vertical-align: top;
+    padding: 3px 6px 3px 0;
+    font-size: 13px;
+}
+.info-label {
+    text-align: right;
+    font-weight: bold;
+    min-width: 105px;
+    white-space: nowrap;
+}
+.info-colon {
+    text-align: center;
+    width: 7px;
+    font-weight: normal;
+}
+.info-value {
+    text-align: left;
+    font-weight: normal;
+    min-width: 120px;
+    white-space: nowrap;
+}
+
+
+    .instructions { margin-top: 32px !important; }
+    .instructions, .warning-block { margin-top: 20px; text-align: center; }
+    .instructions u { font-weight: bold; display: inline-block; margin-bottom: 8px; }
+    .instructions p { margin: 3px 0; }
+    .warning-block { font-weight: bold; font-size: 12px; color: #aa2e00; margin: 30px auto 10px auto; max-width: 90%; }
+    .section-title { font-size: 16px; font-weight: bold; margin: 40px 0 20px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+    .question { margin-bottom: 30px; }
+    .main-q { margin-bottom: 10px; }
+    .sub-q { margin-left: 28px; margin-bottom: 5px; }
+    .breakdown-q { margin-left: 56px; margin-bottom: 2px; }
+    .marks { text-align: right; margin: 0 0 8px 0; }
+    .question img { width: 100% !important; height: auto !important; max-width: 100% !important; display: block; margin: 0 auto 10px auto; }
+</style>
+
 </head>
 <body>
 
@@ -60,31 +90,55 @@
     <p style="text-align:center; font-weight:bold; margin:12px auto 15px auto; font-size:13px;">
         KULLIYYAH OF INFORMATION AND COMMUNICATION TECHNOLOGY
     </p>
-    <table class="info-table">
-        <tr>
-            <td><strong>Programme</strong> : {{ $exam->programme ?? 'BIT/BCS' }}</td>
-            <td><strong>Level of Study</strong> : {{ $exam->level ?? 'UNDERGRADUATE' }}</td>
-        </tr>
-        <tr>
-            <td><strong>Time</strong> : {{ $exam->exam_time ?? '-' }}</td>
-            <td><strong>Date</strong> : {{ $exam->exam_date ? \Carbon\Carbon::parse($exam->exam_date)->format('d F Y') : '-' }}</td>
-        </tr>
-        <tr>
-            <td><strong>Duration</strong> : {{ $exam->duration ?? '-' }}</td>
-            <td><strong>Section(s)</strong> : {{ $exam->section ?? '-' }}</td>
-        </tr>
-        <tr>
-            <td><strong>Course Code</strong> : {{ $exam->course_code ?? '-' }}</td>
-            <td>
-                <strong>Total Page(s)</strong> : <span style="font-weight:bold;">{{ $totalPages }} pages</span>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="2"><strong>Course Title</strong> : {{ $exam->course_name ?? '-' }}</td>
-        </tr>
-    </table>
+<table class="info-table">
+    <tr>
+        <td class="info-label">Programme</td>
+        <td class="info-colon">:</td>
+        <td class="info-value">{{ $exam->programme ?? 'BIT/BCS' }}</td>
 
-    <div class="instructions" style="margin-top: 30px; font-size: 13px;">
+        <td class="info-label">Level of Study</td>
+        <td class="info-colon">:</td>
+        <td class="info-value">{{ $exam->level ?? 'Undergraduate' }}</td>
+    </tr>
+    <tr>
+        <td class="info-label">Time</td>
+        <td class="info-colon">:</td>
+        <td class="info-value">{!! $exam->exam_time ?? '&mdash;' !!}</td>
+
+        <td class="info-label">Date</td>
+        <td class="info-colon">:</td>
+        <td class="info-value">
+            {!! $exam->exam_date ? \Carbon\Carbon::parse($exam->exam_date)->format('d F Y') : '&mdash;' !!}
+        </td>
+    </tr>
+    <tr>
+        <td class="info-label">Duration</td>
+        <td class="info-colon">:</td>
+        <td class="info-value">{!! $exam->duration ?? '&mdash;' !!}</td>
+
+        <td class="info-label">Section(s)</td>
+        <td class="info-colon">:</td>
+        <td class="info-value">{!! $exam->section ?? 'All' !!}</td>
+    </tr>
+    <tr>
+        <td class="info-label">Course Code</td>
+        <td class="info-colon">:</td>
+        <td class="info-value">{!! $exam->course_code ?? '&mdash;' !!}</td>
+
+        <td class="info-label">Total Page(s)</td>
+        <td class="info-colon">:</td>
+        <td class="info-value"><strong>{{ $totalPages }} pages</strong></td>
+    </tr>
+    <tr>
+        <td class="info-label">Course Title</td>
+        <td class="info-colon">:</td>
+        <td class="info-value">{!! $exam->course_name ?? '&mdash;' !!}</td>
+
+        <td colspan="3"></td>
+    </tr>
+</table>
+
+    <div class="instructions" style="font-size: 13px;">
         <table style="margin: 0 auto; border-collapse: collapse; width: 90%; text-align: center;">
             <tr>
                 <td colspan="2" style="font-weight: bold; text-decoration: underline; padding-bottom: 5px;">
