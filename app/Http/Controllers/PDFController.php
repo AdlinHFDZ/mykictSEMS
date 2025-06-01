@@ -33,18 +33,37 @@ class PDFController extends Controller
         $exam = Exam::with(['createdBy', 'semester'])->findOrFail($id);
         $questions = json_decode($exam->questions, true) ?? [];
 
-        // Use the improved count
-        $questionCount = self::countQuestionParts($questions);
+        // === First Pass: Generate Draft PDF ===
+        $pdfDraft = Pdf::loadView('pdf.exam-paper', [
+            'exam' => $exam,
+            'questions' => $questions,
+            'totalPages' => 'DRAFT', // Placeholder
+            'questionCount' => self::countQuestionParts($questions)
+        ])->setPaper('A4');
 
-        // Estimate total pages: 1 cover + 1 per 2 question parts
-        $questionsPerPage = 2;
-        $questionPages = ceil($questionCount / $questionsPerPage);
-        $totalPages = 1 + $questionPages;
+        // Save draft PDF to storage
+        $draftPath = storage_path('app/public/exam_draft_' . uniqid() . '.pdf');
+        $pdfDraft->save($draftPath);
 
-        $pdf = Pdf::loadView('pdf.exam-paper', compact('exam', 'questions', 'questionCount', 'totalPages'))
-                  ->setPaper('A4');
+        // === Count Actual Pages ===
+        $parser = new \Smalot\PdfParser\Parser();
+        $pdfFile = $parser->parseFile($draftPath);
+        $details = $pdfFile->getDetails();
+        $pageCount = $details['Pages'] ?? 1;
 
-        return $pdf->download("Exam_Paper_{$exam->course_code}.pdf");
+        // === Second Pass: Generate Final PDF with actual page count ===
+        $pdfFinal = Pdf::loadView('pdf.exam-paper', [
+            'exam' => $exam,
+            'questions' => $questions,
+            'totalPages' => $pageCount,
+            'questionCount' => self::countQuestionParts($questions)
+        ])->setPaper('A4');
+
+        // Clean up the draft file
+        @unlink($draftPath);
+
+        // Download the final PDF
+        return $pdfFinal->download("Exam_Paper_{$exam->course_code}.pdf");
     }
 
     public function view($id)
@@ -52,14 +71,34 @@ class PDFController extends Controller
         $exam = Exam::with(['createdBy', 'semester'])->findOrFail($id);
         $questions = json_decode($exam->questions, true) ?? [];
 
-        $questionCount = self::countQuestionParts($questions);
-        $questionsPerPage = 2;
-        $questionPages = ceil($questionCount / $questionsPerPage);
-        $totalPages = 1 + $questionPages;
+        // === First Pass: Generate Draft PDF ===
+        $pdfDraft = Pdf::loadView('pdf.exam-paper', [
+            'exam' => $exam,
+            'questions' => $questions,
+            'totalPages' => 'DRAFT',
+            'questionCount' => self::countQuestionParts($questions)
+        ])->setPaper('A4');
 
-        $pdf = Pdf::loadView('pdf.exam-paper', compact('exam', 'questions', 'questionCount', 'totalPages'))
-                  ->setPaper('A4');
+        $draftPath = storage_path('app/public/exam_draft_' . uniqid() . '.pdf');
+        $pdfDraft->save($draftPath);
 
-        return $pdf->stream("Exam_Paper_{$exam->course_code}.pdf");
+        // === Count Actual Pages ===
+        $parser = new \Smalot\PdfParser\Parser();
+        $pdfFile = $parser->parseFile($draftPath);
+        $details = $pdfFile->getDetails();
+        $pageCount = $details['Pages'] ?? 1;
+
+        // === Second Pass: Generate Final PDF with actual page count ===
+        $pdfFinal = Pdf::loadView('pdf.exam-paper', [
+            'exam' => $exam,
+            'questions' => $questions,
+            'totalPages' => $pageCount,
+            'questionCount' => self::countQuestionParts($questions)
+        ])->setPaper('A4');
+
+        @unlink($draftPath);
+
+        // Stream the final PDF in the browser
+        return $pdfFinal->stream("Exam_Paper_{$exam->course_code}.pdf");
     }
 }

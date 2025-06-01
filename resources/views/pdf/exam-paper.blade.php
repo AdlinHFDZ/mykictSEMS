@@ -34,16 +34,20 @@
         .sub-q { margin-left: 28px; margin-bottom: 5px; }
         .breakdown-q { margin-left: 56px; margin-bottom: 2px; }
         .marks { text-align: right; margin: 0 0 8px 0; }
+        .question img {width: 100% !important;height: auto !important;max-width: 100% !important;display: block;margin: 0 auto 10px auto;}
     </style>
 </head>
 <body>
 
 @php
-    function strip_leading_blocks($str) {
-        return preg_replace('/^(\s*<(p|div|br)[^>]*>\s*)+/i', '', $str ?? '');
+    if (!function_exists('strip_leading_blocks')) {
+        function strip_leading_blocks($str) {
+            return preg_replace('/^(\s*<(p|div|br)[^>]*>\s*)+/i', '', $str ?? '');
+        }
     }
     $roman = ['i','ii','iii','iv','v','vi','vii','viii','ix','x'];
 @endphp
+
 
 {{-- COVER PAGE --}}
 <div style="page-break-inside: avoid;">
@@ -71,7 +75,9 @@
         </tr>
         <tr>
             <td><strong>Course Code</strong> : {{ $exam->course_code ?? '-' }}</td>
-            <td><strong>Total Page(s)</strong> : {{ $totalPages }} pages</td>
+            <td>
+                <strong>Total Page(s)</strong> : <span style="font-weight:bold;">{{ $totalPages }} pages</span>
+            </td>
         </tr>
         <tr>
             <td colspan="2"><strong>Course Title</strong> : {{ $exam->course_name ?? '-' }}</td>
@@ -92,7 +98,9 @@
             </tr>
             <tr>
                 <td colspan="2" style="padding-bottom: 5px;">
-                    This question paper consists of {{ $totalPages }} pages, excluding the cover page.
+                    This question paper consists of
+                    <span style="font-weight:bold;">{{ $totalPages }}</span>
+                    pages, excluding the cover page.
                 </td>
             </tr>
             @if (!empty($exam->instruction))
@@ -112,6 +120,7 @@
     <h4 style="margin-top: 60px; text-align: center;">APPROVED BY</h4>
 </div>
 <div style="page-break-after: always;"></div>
+
 
 @foreach ($questions as $qIdx => $q)
     <div class="question">
