@@ -5,19 +5,19 @@
     <h2 class="mb-4">Smart Examination Management System (SEMS)</h2>
 
     @php
-    use App\Models\Semester;
-    use App\Models\CCAssignment;
-    use App\Models\VetterAssignment;
+        // These should ideally be passed from controller!
+        use App\Models\Semester;
+        use App\Models\CCAssignment;
+        use App\Models\VetterAssignment;
 
-    $semesters = \App\Models\Semester::all();
-    $activeSemester = Semester::where('is_active', true)->first();
+        $semesters = \App\Models\Semester::all();
+        $activeSemester = Semester::where('is_active', true)->first();
 
-    $userId = auth()->id();
-    $roleId = auth()->user()->role_id;
+        $userId = auth()->id();
+        $roleId = auth()->user()->role_id;
 
-    $isCC = CCAssignment::where('user_id', $userId)->exists();
-    $isVetter = VetterAssignment::where('user_id', $userId)->exists();
-
+        $isCC = CCAssignment::where('user_id', $userId)->exists();
+        $isVetter = VetterAssignment::where('user_id', $userId)->exists();
     @endphp
 
     {{-- Super Admin View --}}
@@ -28,14 +28,12 @@
             <a href="{{ route('vetters.dashboard') }}" class="btn btn-outline-primary">Vetters Page</a>
             <a href="{{ route('generalOffice.dashboard') }}" class="btn btn-outline-primary">GO dashboard</a>
         </div>
-
         <div>
             @include('components.semester-switcher', [
                 'semesters' => $semesters,
                 'activeSemester' => $activeSemester
             ])
         </div>
-
         <p class="text-muted">
             You are logged in as Super Admin. Use the buttons above to switch views.
         </p>
@@ -49,7 +47,7 @@
             window.location.href = "{{ route('HOD.dashboard') }}";
         </script>
 
-    {{-- Course Coordinator View --}}
+    {{-- Course Coordinator / Vetter --}}
     @elseif ($roleId == 5)
         @if ($isCC)
             <div class="alert alert-info">
@@ -69,8 +67,8 @@
             <p class="text-muted">You are not assigned to any paper yet.</p>
         @endif
 
-    {{-- General Office / Vetter View --}}
-    @elseif ($roleId == 2)
+    {{-- Vetters --}}
+    @elseif ($roleId == 4)
         <div class="alert alert-info">
             Redirecting to Vetters Dashboard...
         </div>
@@ -78,10 +76,8 @@
             window.location.href = "{{ route('vetters.dashboard') }}";
         </script>
 
-
-
-    {{-- General Office View --}}
-    @elseif ($roleId == 7)
+    {{-- General Office --}}
+    @elseif ($roleId == 2)
         <div class="alert alert-info">
             Redirecting to General Office Dashboard...
         </div>

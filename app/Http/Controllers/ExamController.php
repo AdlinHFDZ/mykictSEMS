@@ -312,7 +312,7 @@ public function hodDashboard(Request $request)
 
     public function generalOfficeDashboard(Request $request)
     {
-        if (auth()->user()->role_id !== 7 && auth()->user()->role_id !== 1) {
+        if (auth()->user()->role_id !== 2 && auth()->user()->role_id !== 1) {
             abort(403, 'Unauthorized.');
         }
 
