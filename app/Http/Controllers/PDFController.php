@@ -101,4 +101,71 @@ class PDFController extends Controller
         // Stream the final PDF in the browser
         return $pdfFinal->stream("Exam_Paper_{$exam->course_code}.pdf");
     }
+
+
+public function downloadAnswerScheme($id)
+{
+    $exam = Exam::with(['createdBy', 'semester'])->findOrFail($id);
+    $questions = json_decode($exam->questions, true) ?? [];
+
+    // First pass: generate draft
+    $pdfDraft = Pdf::loadView('pdf.answer-scheme', [
+        'exam' => $exam,
+        'questions' => $questions,
+        // no need for questionCount here unless needed in your view
+    ])->setPaper('A4');
+
+    $draftPath = storage_path('app/public/answer_scheme_draft_' . uniqid() . '.pdf');
+    $pdfDraft->save($draftPath);
+
+    // Count pages
+    $parser = new \Smalot\PdfParser\Parser();
+    $pdfFile = $parser->parseFile($draftPath);
+    $details = $pdfFile->getDetails();
+    $pageCount = $details['Pages'] ?? 1;
+
+    // Second pass: final PDF with real page count if needed
+    $pdfFinal = Pdf::loadView('pdf.answer-scheme', [
+        'exam' => $exam,
+        'questions' => $questions,
+        'totalPages' => $pageCount,
+    ])->setPaper('A4');
+
+    @unlink($draftPath);
+
+    return $pdfFinal->download("Answer_Scheme_{$exam->course_code}.pdf");
+}
+
+public function viewAnswerScheme($id)
+{
+    $exam = Exam::with(['createdBy', 'semester'])->findOrFail($id);
+    $questions = json_decode($exam->questions, true) ?? [];
+
+    // First pass: generate draft
+    $pdfDraft = Pdf::loadView('pdf.answer-scheme', [
+        'exam' => $exam,
+        'questions' => $questions,
+    ])->setPaper('A4');
+
+    $draftPath = storage_path('app/public/answer_scheme_draft_' . uniqid() . '.pdf');
+    $pdfDraft->save($draftPath);
+
+    // Count pages
+    $parser = new \Smalot\PdfParser\Parser();
+    $pdfFile = $parser->parseFile($draftPath);
+    $details = $pdfFile->getDetails();
+    $pageCount = $details['Pages'] ?? 1;
+
+    // Second pass: final PDF with real page count if needed
+    $pdfFinal = Pdf::loadView('pdf.answer-scheme', [
+        'exam' => $exam,
+        'questions' => $questions,
+        'totalPages' => $pageCount,
+    ])->setPaper('A4');
+
+    @unlink($draftPath);
+
+    return $pdfFinal->stream("Answer_Scheme_{$exam->course_code}.pdf");
+}
+
 }

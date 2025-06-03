@@ -105,6 +105,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pdf/view/{id}', [PDFController::class, 'view'])->name('pdf.view');
     Route::get('/pdf/download/{id}', [PDFController::class, 'download'])->name('pdf.download');
     Route::post('/generate-pdf', [PDFController::class, 'generate'])->name('pdf.generate');
+    Route::get('/exam/{id}/answer-scheme', [PDFController::class, 'downloadAnswerScheme'])->name('exam.download-answer-scheme');
+    Route::get('/exam/{id}/answer-scheme/view', [PDFController::class, 'viewAnswerScheme'])->name('exam.view-answer-scheme');
 
 });
 

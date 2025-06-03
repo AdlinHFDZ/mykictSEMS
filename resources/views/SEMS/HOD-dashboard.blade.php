@@ -6,9 +6,50 @@
 @endphp
 
 <style>
+    .card-table {
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.02);
+        border-radius: 1rem;
+    }
     .table th, .table td {
         vertical-align: middle;
         text-align: center;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f7fafc !important;
+        transition: background 0.15s;
+    }
+    .badge {
+        font-size: 0.95em;
+        padding: 0.43em 1.1em;
+        border-radius: 1.2em;
+        letter-spacing: 0.02em;
+    }
+    .btn-sm, .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-info {
+        border-radius: 1.5em !important;
+        font-size: 0.98em;
+        margin-bottom: 3px;
+    }
+    .btn-block {
+        display: block;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    .page-header h1, .page-header h3 {
+        letter-spacing: 0.01em;
+        font-weight: 700;
+        margin-bottom: 0.3em;
+    }
+    .breadcrumb {
+        margin-bottom: 0;
+    }
+    .d-grid.gap-1 > * {
+        margin-bottom: 0.35em;
+    }
+    @media (max-width: 700px) {
+        .page-header h1, .page-header h3 { font-size: 1.12em; }
+        .btn-sm { font-size: 0.95em; }
+        .table-responsive { font-size: 0.95em; }
+        .card-table { padding: 0.2rem; }
     }
 </style>
 
@@ -27,10 +68,10 @@
         </div>
     @endif
 
-    <div class="page-header">
+    <div class="page-header mb-3">
         <div class="row align-items-center">
             <div class="col text-center">
-                <h1 class="page-title">HOD SEMS DASHBOARD, Welcome Dr Khairul!</h1>
+                <h1 class="page-title">HOD SEMS DASHBOARD</h1>
                 <ul class="breadcrumb justify-content-center" style="list-style: none; padding: 0;">
                     <li class="breadcrumb-item"><a href="{{ route('SEMS.dashboard') }}">SEMS</a></li>
                     <li class="breadcrumb-item active">Manage Exams</li>
@@ -43,12 +84,12 @@
     <form method="GET" action="{{ route('HOD.dashboard') }}" class="mb-3">
         <div class="row justify-content-end align-items-center">
             <div class="col-auto">
-                <label for="statusFilter" class="form-label">Filter by Status:</label>
+                <label for="statusFilter" class="form-label mb-0">Filter by Status:</label>
             </div>
             <div class="col-auto">
                 <select name="status" id="statusFilter" class="form-select" onchange="this.form.submit()">
                     <option value="">All</option>
-                    @foreach ([
+                    @foreach([
                         ExamStatus::ASSIGN_COORDINATOR,
                         ExamStatus::DRAFT_QUESTION,
                         ExamStatus::DRAFT_QUESTION_COMPLETE,
@@ -66,28 +107,26 @@
         </div>
     </form>
 
-    <!-- Table -->
-    <div class="row">
-        <div class="col-sm-12">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
             <div class="card card-table">
-                <div class="card-body">
-                    <div class="page-header">
+                <div class="card-body py-4">
+                    <div class="page-header pb-1 mb-3">
                         <div class="row align-items-center">
                             <div class="col">
-                                <h3 class="page-title">Exam Slots</h3>
+                                <h3 class="page-title mb-1">Exam Slots</h3>
                             </div>
                             <div class="col-auto text-end ms-auto">
-                                <a href="{{ route('courses.index') }}" class="btn btn-outline-primary">📚 Course List</a>
-                                <a href="{{ route('exam.create') }}" class="btn btn-success me-2">
+                                <a href="{{ route('courses.index') }}" class="btn btn-outline-primary btn-sm me-1 mb-1">📚 Course List</a>
+                                <a href="{{ route('exam.create') }}" class="btn btn-success btn-sm me-1 mb-1">
                                     <i class="fas fa-plus"></i> Create Exam
                                 </a>
-                                <a href="{{ route('courses.create') }}" class="btn btn-outline-secondary me-2">
+                                <a href="{{ route('courses.create') }}" class="btn btn-outline-secondary btn-sm mb-1">
                                     <i class="fas fa-book"></i> Manage Courses
                                 </a>
                             </div>
                         </div>
                     </div>
-
                     <div class="table-responsive">
                         <table class="table table-hover table-striped mb-0">
                             <thead>
@@ -138,7 +177,7 @@
                                         <td>
                                             <div class="d-grid gap-1">
                                             @if ($exam->status === ExamStatus::ASSIGN_COORDINATOR->value)
-                                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#assignCCModal{{ $exam->id }}">
+                                                <button class="btn btn-sm btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#assignCCModal{{ $exam->id }}">
                                                     Assign CC
                                                 </button>
 
@@ -175,7 +214,7 @@
                                                 </div>
 
                                             @elseif ($exam->status === ExamStatus::DRAFT_QUESTION_COMPLETE->value)
-                                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#assignVetterModal{{ $exam->id }}">
+                                                <button class="btn btn-sm btn-warning btn-block" data-bs-toggle="modal" data-bs-target="#assignVetterModal{{ $exam->id }}">
                                                     Assign Vetter
                                                 </button>
 
@@ -210,17 +249,16 @@
                                                     </div>
                                                 </div>
                                             @elseif ($exam->status === ExamStatus::PENDING_APPROVAL->value)
-                                                <a href="{{ route('approval.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-info">View Question</a>
-
+                                                <a href="{{ route('approval.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-info btn-block">View Question</a>
                                             @else
-                                                <span class="text-muted">
-                                                        <i class="fas fa-check-circle me-1 text-success"></i> Assigned
+                                                <span class="btn btn-sm btn-outline-success disabled btn-block" tabindex="-1" aria-disabled="true" style="pointer-events:none; opacity: 1;">
+                                                    <i class="fas fa-check-circle me-1"></i> Assigned
                                                 </span>
                                             @endif
-
-                                            <a href="{{ route('pdf.view', $exam->id) }}" class="btn btn-sm btn-outline-primary" target="_blank">View PDF</a>
-                                            <a href="{{ route('pdf.download', $exam->id) }}" class="btn btn-sm btn-outline-success">Download PDF</a>
-                                            <a href="{{ route('view.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-outline-info">👁 View</a>
+                                            <a href="{{ route('pdf.view', $exam->id) }}" class="btn btn-sm btn-outline-primary btn-block" target="_blank">View PDF</a>
+                                            <a href="{{ route('pdf.download', $exam->id) }}" class="btn btn-sm btn-outline-success btn-block">Download PDF</a>
+                                            <a href="{{ route('view.question', ['exam_id' => $exam->id]) }}" class="btn btn-sm btn-outline-info btn-block">👁 View</a>
+                                            <a href="{{ route('exam.view-answer-scheme', $exam->id) }}" class="btn btn-sm btn-outline-warning btn-block" target="_blank">Answer Scheme</a>
                                             </div>
                                         </td>
                                     </tr>
