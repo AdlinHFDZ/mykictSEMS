@@ -129,4 +129,21 @@
         </div>
     </div>
 </div>
+@push('styles')
+<style>
+.modal-body {
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+}
+.modal-dialog {
+    max-width: 90vw;
+}
+ol.ps-3, .modal-body li {
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+</style>
+@endpush
+
 @endsection
